@@ -10,8 +10,7 @@
     $password = trim($_POST["password"]);
     $email = trim($_POST["singidunumMail"]);
 
-    //$nameSurname_pattern = "/^[\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z]{1,15}\s([\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z\-]{1,15}\s?){1,3}$/"; //PCRE sintax is valid, but php do not recognize
-    $nameSurname_pattern = "/^[A-ZБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФСЦЧЏШŠĐČĆ]{1}[a-zабвгдђежзијклљмнњопрстћуфсцчџшšđčć]{1,14}\s([A-ZАБВГДЂЕЖЗИЈКЛЉМНЊОПРСТЋУФСЦЧЏШŠĐČĆ]{1}[a-zабвгдђежзијклљмнњопрстћуфсцчџшšđčć]{1,14}\s?){1,3}$/";
+    $nameSurname_pattern = "/^([\x{0410}-\x{0418}\x{0402}\x{0408}\x{041A}-\x{041F}\x{0409}\x{040A}\x{0420}-\x{0428}\x{040B}\x{040F}A-Z\x{0110}\x{017D}\x{0106}\x{010C}\x{0160}]{1}[\x{0430}-\x{0438}\x{0452}\x{043A}-\x{043F}\x{045A}\x{0459}\x{0440}-\x{0448}\x{0458}\x{045B}\x{045F}a-z\x{0111}\x{017E}\x{0107}\x{010D}\x{0161}]+(\s|\-)?)+$/u";
     //name (1-15 letters)_surname (1-15 letters) - unicode
     $password_pattern = "/^(?=.*[a-z])(?=.*\d)[a-z\d]{8,}$/";
     //lowercase and digit (length of min 8)
@@ -38,7 +37,7 @@
 
                 $context = stream_context_create(array(
                     "http" => array(
-                        "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . " Content-type: application/json",
+                        "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
                         "protocol_version" => 1.1,
                         'method' => 'POST',
                         'content' => json_encode($user_data)
@@ -46,7 +45,7 @@
 
                 $response = json_decode(file_get_contents($url, false, $context));
 
-                if($response["error"] != null){
+                if(json_decode($response)->{"error"} != null){
                     file_put_contents($invalid_csv_path, $data_csv[$i][2] . " - " . $xml->errors->registrationError[0] . "<br>\n", FILE_APPEND | LOCK_EX);
                     continue;
                 }
@@ -106,7 +105,7 @@
 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . " Content-type: application/json",
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'POST',
                 'content' => json_encode($user_data)
@@ -114,7 +113,7 @@
 
         $response = json_decode(file_get_contents($url, false, $context));
 
-        if($response["error"] != null) die($xml->errors->registrationError[0] . "<br>");
+        if(json_decode($response)->{"error"} != null) die($xml->errors->registrationError[0] . "<br>");
         else echo "<i style='color:green;font-size:14px;'> + {$xml->registrationPage->successfullRegistration[0]} $id. {$xml->registrationPage->pageReload[0]}</i><br><br>";
 
         $newUserHeader = $response["id"] . ':' . strtoupper($_POST['registerAs']);

@@ -14,19 +14,19 @@ public class ServerController {
     @Autowired
     private ServerService serverService;
 
-    @PostMapping("insert/staff")
+    @PostMapping("insert/staff") //Implemented
     @CrossOrigin(origins = {"https://localhost:62812"})
     public Staff addNewStaffMember(@RequestBody Staff newStaff){
-        return this.serverService.addNewStaffMember(newStaff);
+        return this.serverService.addNewStaffMember(newStaff, false);
     }
 
-    @RequestMapping(value = "update/staff/{id}", method = RequestMethod.PATCH)
+    @RequestMapping(value = "update/staff/{id}", method = RequestMethod.PATCH) //Implemented
     @CrossOrigin(origins = {"https://localhost:62812"})
     Staff updateStaffMemberById(@PathVariable int id, @RequestBody Staff newStaffData){
         return this.serverService.updateStaffMemberById(id, newStaffData);
     }
 
-    @RequestMapping(value = "checkPassword/staff/{id}", method = RequestMethod.GET)
+    @RequestMapping(value = "checkPassword/staff/{id}", method = RequestMethod.GET) //Implemented
     @CrossOrigin(origins = {"https://localhost:62812"})
     String checkPassword(@PathVariable int id, @RequestBody String plainPassword){
         return this.serverService.checkPassword(id, plainPassword) ? "VALID\n" : "INVALID\n";
@@ -35,10 +35,10 @@ public class ServerController {
     @PostMapping("insert/student")
     @CrossOrigin(origins = {"https://localhost:62812"})
     Student addNewStudent(@RequestBody Student newStudent){
-        return this.serverService.addNewStudent(newStudent);
+        return this.serverService.addNewStudent(newStudent, false);
     }
 
-    @RequestMapping(value = "update/student/{id}", method = RequestMethod.PATCH)
+    @RequestMapping(value = "update/student/{id}", method = RequestMethod.PATCH) //Implemented
     @CrossOrigin(origins = {"https://localhost:62812"})
     Student updateStudentById(@PathVariable int id, @RequestBody Student newStudentData){
         return this.serverService.updateStudentById(id, newStudentData);
@@ -68,7 +68,7 @@ public class ServerController {
         System.out.println(this.serverService.recordAttendance(subjectId, index, isExercise));
     }
 
-    @PostMapping(value = "checkPassword/admin")
+    @PostMapping(value = "checkPassword/admin") //Implemented
     @CrossOrigin(origins = {"https://localhost:62812"})
     String checkPassword(@RequestBody String plainPassword){
         return this.serverService.checkPasswordAdmin(plainPassword) ? "VALID\n" : "INVALID\n";
