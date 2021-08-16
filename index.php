@@ -460,7 +460,7 @@
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021"),
+                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'GET',
                     'content' => $_SERVER['PHP_AUTH_PW']
