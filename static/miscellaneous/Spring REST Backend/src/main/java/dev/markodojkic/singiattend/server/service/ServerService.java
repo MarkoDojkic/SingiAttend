@@ -35,8 +35,8 @@ public class ServerService implements IServerService {
     private ISubjectRepository subjectRepository;
 
     @Override
-    public Staff addNewStaffMember(Staff newStaff) {
-        newStaff.setPassword_hash(this.encryptPassword(newStaff.getPassword_hash()));
+    public Staff addNewStaffMember(Staff newStaff, boolean isUpdate) {
+        if(!isUpdate) newStaff.setPassword_hash(this.encryptPassword(newStaff.getPassword_hash()));
         return this.staffRepository.saveAndFlush(newStaff);
     }
 
@@ -44,11 +44,11 @@ public class ServerService implements IServerService {
     public Staff updateStaffMemberById(int id, Staff newStaffData) {
         Staff staff = staffRepository.findById(id).isPresent() ? staffRepository.findById(id).get() : null;
         if(staff == null) return null;
-        if(!newStaffData.getEmail().isBlank()) staff.setEmail(newStaffData.getEmail());
-        if(!newStaffData.getName_surname().isBlank()) staff.setName_surname(newStaffData.getName_surname());
-        if(!newStaffData.getRole().isBlank()) staff.setRole(newStaffData.getRole());
-        if(!newStaffData.getPassword_hash().isBlank()) staff.setPassword_hash(this.encryptPassword(newStaffData.getPassword_hash()));
-        return this.addNewStaffMember(newStaffData);
+        if(newStaffData.getEmail() != null && !newStaffData.getEmail().isBlank()) staff.setEmail(newStaffData.getEmail());
+        if(newStaffData.getName_surname() != null && !newStaffData.getName_surname().isBlank()) staff.setName_surname(newStaffData.getName_surname());
+        if(newStaffData.getRole() != null && !newStaffData.getRole().isBlank()) staff.setRole(newStaffData.getRole());
+        if(newStaffData.getPassword_hash() != null && !newStaffData.getPassword_hash().isBlank()) staff.setPassword_hash(this.encryptPassword(newStaffData.getPassword_hash()));
+        return this.addNewStaffMember(staff, true);
     }
 
     @Override
@@ -57,23 +57,22 @@ public class ServerService implements IServerService {
     }
 
     @Override
-    public Student addNewStudent(Student newStudent) {
+    public Student addNewStudent(Student newStudent, boolean isUpdate) {
+        if(!isUpdate) newStudent.setPassword_hash(this.encryptPassword(newStudent.getPassword_hash()));
         return this.studentRepository.saveAndFlush(newStudent);
     }
-
-
 
     @Override
     public Student updateStudentById(int id, Student newStudentData) {
         Student student = studentRepository.findById(id).isPresent() ? studentRepository.findById(id).get() : null;
         if(student == null) return null;
-        if(!newStudentData.getYear().isBlank()) student.setYear(newStudentData.getYear());
-        if(!newStudentData.getEmail().isBlank()) student.setEmail(newStudentData.getEmail());
-        if(!newStudentData.getName_surname().isBlank()) student.setName_surname(newStudentData.getName_surname());
-        if(!newStudentData.getIndex().isBlank()) student.setIndex(newStudentData.getIndex());
-        if(!newStudentData.getPassword_hash().isBlank()) student.setPassword_hash(this.encryptPassword(newStudentData.getPassword_hash()));
+        if(newStudentData.getYear() != null && newStudentData.getYear().isEmpty()) student.setYear(newStudentData.getYear());
+        if(newStudentData.getEmail() != null && !newStudentData.getEmail().isEmpty()) student.setEmail(newStudentData.getEmail());
+        if(newStudentData.getName_surname() != null && !newStudentData.getName_surname().isEmpty()) student.setName_surname(newStudentData.getName_surname());
+        if(newStudentData.getIndex() != null && !newStudentData.getIndex().isEmpty()) student.setIndex(newStudentData.getIndex());
+        if(newStudentData.getPassword_hash() != null && !newStudentData.getPassword_hash().isEmpty()) student.setPassword_hash(this.encryptPassword(newStudentData.getPassword_hash()));
         if(newStudentData.getStudyId() != 0) student.setStudyId(newStudentData.getStudyId());
-        return this.addNewStudent(newStudentData);
+        return this.addNewStudent(student, true);
     }
 
     @Override
