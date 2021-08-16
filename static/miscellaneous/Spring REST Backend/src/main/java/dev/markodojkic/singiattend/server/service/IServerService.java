@@ -7,10 +7,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 public interface IServerService {
-    Staff addNewStaffMember(Staff newStaff);
+    Staff addNewStaffMember(Staff newStaff, boolean isUpdate);
     Staff updateStaffMemberById(int id, Staff newStaffData);
     boolean checkPassword(int id, String plainPassword);
-    Student addNewStudent(Student newStudent);
+    Student addNewStudent(Student newStudent, boolean isUpdate);
     Student updateStudentById(int id, Student newStudentData);
     boolean checkPasswordStudent(int id, String plainPassword);
     String getNameSurnameStudent(String index);

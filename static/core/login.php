@@ -38,14 +38,14 @@
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021"),
+                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
-                    'method' => 'POST',
+                    'method' => 'GET',
                     'content' => $password
             )));
 
             $response = file_get_contents($url, false, $context);
-            if(strcmp($response, "INVALID\n") === 1) $errors[] = "wrong_pass";
+            if(strcmp($response, "INVALID") === 1) $errors[] = "wrong_pass";
         }
 
         if(sizeof($errors) !== 0){
