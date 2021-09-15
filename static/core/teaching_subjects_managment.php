@@ -284,7 +284,7 @@
         . $lastLectureData["log_file_name"])); //example of var data [1.2020-12-01,11:30$12:45]
 
         $dateTime = explode(".",$var[0])[1] . explode("$",$var[1])[1];
-
+        $dateTime = explode("\n", $dateTime)[0];
         if($lastLectureData != null)
             $lengthFromLastLecture = date_diff(new DateTime($dateTime),new DateTime($_POST['start_time'])); 
 
@@ -294,6 +294,9 @@
                 viewLectures($id,$xml,$conn);
                 exit;
             }
+        
+        file_put_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/" . "lectureLogs/" 
+            . $lastLectureData["log_file_name"], "----------------------------------------", FILE_APPEND | LOCK_EX);
 
         do {
             $log_file_name = $id . "_" . random_int($id, 100*$id) . '.log'; //generate unique log filename (up to 100 lectures per subject)
@@ -314,6 +317,12 @@
         $data = $count . "." . date("Y-m-d") . '^' . $_POST['start_time'] . '$' . $_POST['end_time'] . "\n";
 
         file_put_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/lectureLogs/" . $log_file_name, $data, LOCK_EX);
+
+        $query = sprintf("UPDATE `subject` SET last_lecture_at = '%s' WHERE subject_id = '%s';", 
+                mysqli_real_escape_string($conn, date("Y-m-d") . " " . $_POST['start_time']),
+                mysqli_real_escape_string($conn, $id));
+
+        $conn->query($query);
 
         echo("<script>alert('{$xml->professorPage->startNewLectureSuccessfull[0]}');</script>");
 
