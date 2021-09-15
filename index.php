@@ -146,7 +146,7 @@
         $tBody = "";
         
         $query = sprintf("SELECT subject_id, title, title_english, staff.name_surname as assistant_name_surname, is_inactive FROM `subject`
-        INNER JOIN staff ON `subject`.assistant_id = staff.staff_id
+        LEFT JOIN staff ON `subject`.assistant_id = staff.staff_id
         WHERE professor_id = '%s';", mysqli_real_escape_string($conn,$_SESSION['loggedInId']));
 
         $data = $conn->query($query);
