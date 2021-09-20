@@ -1,1 +1,2 @@
-# SingiAttend Web Application...
+Teachers application for student attendance. Represents expanded "ISEPS" project to be used with coresponding android and iPhone aplications for students. Additionaly, Spring REST server is added for communication and database is updated. 
+Note: This is not official Singidunum University application, and should not be used as such. It represents side project of mine.

@@ -134,7 +134,7 @@ public class ServerService implements IServerService {
 
     @Override
     public boolean checkPasswordAdmin(String plainPassword) {
-        return this.encryptPassword(plainPassword).equals("S5TZZQ2lw6FNeOJZKbh1TYkOYyuJX6fR2Z+Xrj1g5CQ=");
+        return this.encryptPassword(plainPassword).equals("1cfMqJGcxQ/L9LJSAk3bjk0KmDOlRLU+U2dge6iFlTY=");
     }
 
     @Override
