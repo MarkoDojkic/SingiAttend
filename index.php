@@ -452,30 +452,17 @@
     }
 
     function authenticateAdmin($xml,$conn){
-        /*header("WWW-Authenticate: Basic realm=\"Administrator panel\"");
-        die($_SERVER['PHP_AUTH_USER']);
-        header("HTTP/1.0 403 Unauthorized");
-        if (@$_SERVER['PHP_AUTH_USER'] === "Administrator"){
-            $url = "http://127.0.0.1:62812/api/checkPassword/admin";
-                
-            $context = stream_context_create(array(
-                "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
-                    "protocol_version" => 1.1,
-                    'method' => 'GET',
-                    'content' => $_SERVER['PHP_AUTH_PW']
-            )));
+        $adminPass = "$2y$10$5r23wvFZGvpRyi/wYn82gOLrAF4Nkma2.sfOt5yHACX4IviU6nSP2";
+        
+        header("WWW-Authenticate: Basic realm=\"Administrator panel\"");
+        header("HTTP/1.0 401 Unauthorized");
+        if (@$_SERVER['PHP_AUTH_USER'] === 'Administrator' && password_verify($_SERVER['PHP_AUTH_PW'], $adminPass)){
+            $_SESSION["loggedInAs"] = "admin";
+            $_SESSION['loggedInUser'] = "Administrator";
+            header("Location:index.php?language={$_SESSION["language"]}&page=staff_registration",true, 301);
+        }
 
-            //$response = file_get_contents($url, false, $context);
-            */
-            //if(strcmp($response, "VALID\n") === 1){
-                $_SESSION["loggedInAs"] = "admin";
-                $_SESSION['loggedInUser'] = $conn->query("SELECT name_surname FROM staff WHERE staff_id = 1")->fetch_assoc()["name_surname"];
-                header("Location:index.php?language={$_SESSION["language"]}&page=staff_registration",true, 301);
-            //}
-        //}
-
-        //echo "<script>window.location = 'index.php?language={$_SESSION["language"]}&page=login';</script>";
+        echo "<script>window.location = 'index.php?language={$_SESSION["language"]}&page=login';</script>";
     }
 
     $conn->close();
