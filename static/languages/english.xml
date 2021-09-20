@@ -77,6 +77,8 @@
       <lecturesBtn>Lectures</lecturesBtn>
       <startSYBtn>Start new school year</startSYBtn>
       <endSYBtn>End current school year</endSYBtn>
+      <startTime>Started at</startTime>
+      <endTime>Finished at</endTime>
       <lectureSelection>Select lecture</lectureSelection>
       <lectureStartBtn>Start new lecture</lectureStartBtn>
       <startNewLectureSuccessfull>New lecture started successfully</startNewLectureSuccessfull>
