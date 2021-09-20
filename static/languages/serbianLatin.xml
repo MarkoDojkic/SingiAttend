@@ -77,6 +77,8 @@
      <lecturesBtn>Predavanja</lecturesBtn>
      <startSYBtn>Započnite novu školsku godinu</startSYBtn>
      <endSYBtn>Kraj tekuće školske godine</endSYBtn>
+     <startTime>Počelo u</startTime>
+     <endTime>Završeno u</endTime>
      <lectureSelection>Izaberite predavanje</lectureSelection>
      <lectureStartBtn>Započnite novo predavanje</lectureStartBtn>
      <startNewLectureSuccessfull>Novo predavanje je uspešno započeto</startNewLectureSuccessfull>

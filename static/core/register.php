@@ -101,7 +101,7 @@
     else {
         $url = "http://127.0.0.1:62812/api/insert/staff";
                 
-        $user_data = array("id" => random_int(20000, 40000), "name_surname" => $nameSurname, "email" => $email, "password_hash" => $hashed_pass, "role" => $_POST['registerAs']);
+        $user_data = array("id" => random_int(20000, 40000), "name_surname" => $nameSurname, "email" => $email, "password_hash" => $password, "role" => $_POST['registerAs']);
 
         $context = stream_context_create(array(
             "http" => array(
@@ -115,19 +115,7 @@
 
         if(json_decode($response)->{"error"} != null) die($xml->errors->registrationError[0] . "<br>");
         else echo "<i style='color:green;font-size:14px;'> + {$xml->registrationPage->successfullRegistration[0]} $id. {$xml->registrationPage->pageReload[0]}</i><br><br>";
-
-        $newUserHeader = $response["id"] . ':' . strtoupper($_POST['registerAs']);
-
-        $newUser = "
-            ------{$newUserHeader}------
-                  {$nameSurname}
-                   {$email}
-                   {$password}
-            ------{$newUserHeader}------
-        ";
-
-        file_put_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/accounts.rtf", $newUser, FILE_APPEND | LOCK_EX);
-
+        
         echo "<script>setTimeout(function(){
             window.top.location.reload();
          }, 5000);</script>";
