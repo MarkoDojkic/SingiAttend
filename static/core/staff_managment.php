@@ -1,26 +1,34 @@
 <?php
     session_start();
     require "../../constants.php";
-    require "database_connection.php";
 
     $xml = @simplexml_load_file(DIR_ROOT . DIR_LANGUAGES . "/{$_SESSION["language"]}.xml")  or die(file_get_contents(DIR_ROOT . "/error404.html"));
     
     foreach(array_keys($_POST) as $key){
        
         switch(explode('_',$key)[0]){
-            case "switchRole": switchRole(explode('_',$key)[1],$xml,$conn); break;
-            case 'edit': editStaffMember(explode('_',$key)[1],$xml,$conn); break;
-            case 'delete': deleteStaffMember(explode('_',$key)[1],$xml,$conn); break;
+            case "switchRole": switchRole(explode('_',$key)[1],$xml); break;
+            case 'edit': editStaffMember(explode('_',$key)[1],$xml); break;
+            case 'delete': deleteStaffMember(explode('_',$key)[1],$xml); break;
             default: continue 2;
         }
     }
 
-    function switchRole($id,$xml,$conn){
+    function switchRole($id,$xml){
         $newRole = $_POST["oldRole_$id"] === "professor" ? "assistant" : "professor";
 
-        $query = sprintf("SELECT * FROM subject WHERE professor_id = '%s' OR assistant_id = '%s';",mysqli_real_escape_string($conn,$id),mysqli_real_escape_string($conn,$id));
+        $url = "http://127.0.0.1:62812/api/checkIfStaffHasSubjectAssigned/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1");
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        if(sizeof($conn->query($query)->fetch_assoc()) > 0){
+        $data = json_decode(file_get_contents($url, false, $context), true);
+
+        if(!$data){
             $staffMember = $newRole === "professor" ? $xml->registrationPage->assistant[0] : $xml->registrationPage->professor[0];
             showErrorAlert($xml->errors->switchRoleError1[0] . " " . strtolower($staffMember) . " " . $xml->errors->switchRoleError2[0]);
         }
@@ -42,7 +50,7 @@
         reloadPage();
     }
 
-    function editStaffMember($id,$xml,$conn){
+    function editStaffMember($id,$xml){
 
         $nameSurname_pattern = "/^([\x{0410}-\x{0418}\x{0402}\x{0408}\x{041A}-\x{041F}\x{0409}\x{040A}\x{0420}-\x{0428}\x{040B}\x{040F}A-Z\x{0110}\x{017D}\x{0106}\x{010C}\x{0160}]{1}[\x{0430}-\x{0438}\x{0452}\x{043A}-\x{043F}\x{045A}\x{0459}\x{0440}-\x{0448}\x{0458}\x{045B}\x{045F}a-z\x{0111}\x{017E}\x{0107}\x{010D}\x{0161}]+(\s|\-)?)+$/u";
         $password_pattern = "/^(?=.*[a-z])(?=.*\d)[a-z\d]{8,}$/";
@@ -95,12 +103,18 @@
         reloadPage();   
     }
 
-    function deleteStaffMember($id,$xml,$conn){
+    function deleteStaffMember($id,$xml){
 
-        $query = sprintf("DELETE FROM staff WHERE staff_id = '%s';",mysqli_real_escape_string($conn,$id));
+        $url = "http://127.0.0.1:62812/api/deleteStaff/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1");
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'DELETE'
+        )));
 
-        $conn->query($query) or showErrorAlert($xml->errors->deleteError[0]);
-
+        file_get_contents($url, false, $context);
         reloadPage();
     }
 

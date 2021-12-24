@@ -15,7 +15,6 @@
             session_start();          
             
             require "constants.php";
-            require DIR_CORE . "/database_connection.php";
 
             if(@$_SESSION["language"] !== "english" && 
                     @$_SESSION["language"] !== "serbianCyrilic" 
@@ -39,17 +38,17 @@
                 
             if($_SESSION["loggedInAs"] === "professor"){
                 switch($_SESSION["page"]){
-                    case "teaching_subject_management": echo initiateProfessorPage1($xml, $conn); break;
-                    case "add_new_subject": echo initiateProfessorPage2($xml, $conn); break;
-                    case "professor_reports": echo initiateProfessorPage3($xml, $conn); break;
+                    case "teaching_subject_management": echo initiateProfessorPage1($xml); break;
+                    case "add_new_subject": echo initiateProfessorPage2($xml); break;
+                    case "professor_reports": echo initiateProfessorPage3($xml); break;
                     default: echo file_get_contents("error404.html"); break;
                 }
             }
 
             else if($_SESSION["loggedInAs"] === "assistant"){
                 switch($_SESSION["page"]){
-                    case "teaching_exercises": echo initiateAssistantPage1($xml, $conn); break;
-                    case "exercises_reports": echo initiateAssistantPage2($xml, $conn); break;
+                    case "teaching_exercises": echo initiateAssistantPage1($xml); break;
+                    case "exercises_reports": echo initiateAssistantPage2($xml); break;
                     default: echo file_get_contents("error404.html"); break;
                 }
             }
@@ -57,9 +56,9 @@
             else if($_SESSION["loggedInAs"] === "admin"){
                 switch($_SESSION["page"]){
                     case "staff_registration": echo initiateAdminPage1($xml); break;
-                    case "staff_management": echo initiateAdminPage2($xml, $conn); break;
-                    case "students_management": echo initiateAdminPage3($xml, $conn); break;
-                    case "admin_reports": echo initiateAdminPage4($xml, $conn); break;
+                    case "staff_management": echo initiateAdminPage2($xml); break;
+                    case "students_management": echo initiateAdminPage3($xml); break;
+                    case "admin_reports": echo initiateAdminPage4($xml); break;
                     default: echo file_get_contents("error404.html"); break;
                 }
             }
@@ -67,7 +66,7 @@
             else {
                 switch(@$_SESSION["page"]){
                     case "login": echo initiateLoginPage($xml); break;
-                    case "admin_access": echo initiateAdminAccessPage($xml, $conn); break;
+                    case "admin_access": echo initiateAdminAccessPage($xml); break;
                     default: echo file_get_contents("error404.html"); break;
                 }
             }   
@@ -111,7 +110,7 @@
         return $header;
     }
 
-    function initiateAdminAccessPage($xml, $conn){
+    function initiateAdminAccessPage($xml){
         if(@$_SESSION["isAdminLoggedOut"]){
             $_SERVER["PHP_AUTH_USER"] = null;
             $_SERVER["PHP_AUTH_PW"] = null;
@@ -137,35 +136,42 @@
         return $page_context;
     }
 
-    function initiateProfessorPage1($xml,$conn){
+    function initiateProfessorPage1($xml){
         $page_context = file_get_contents(DIR_TEMPLATES . "/teachingSubjectsManagement.html");
         $page_context = str_replace("{FORM_ACTION}", DIR_CORE . "/teaching_subjects_managment.php", $page_context);
         $page_context = str_replace("{ASSISTENT_TITLE}",$xml->registrationPage->assistant[0], $page_context);
         $page_context = str_replace("{SUBJECT_TITLE}",explode("(",$xml->professorPage->subject_name[0])[0], $page_context);
         
         $tBody = "";
+
+        $url = "http://127.0.0.1:62812/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId'];
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
+
+        $data = json_decode(file_get_contents($url, false, $context), true);
         
-        $query = sprintf("SELECT subject_id, title, title_english, staff.name_surname as assistant_name_surname, is_inactive FROM `subject`
-        LEFT JOIN staff ON `subject`.assistant_id = staff.staff_id
-        WHERE professor_id = '%s';", mysqli_real_escape_string($conn,$_SESSION['loggedInId']));
-
-        $data = $conn->query($query);
-
-        while($subject = $data->fetch_assoc()){
+        foreach($data as $subject){
             $subjectName = $_SESSION["language"] === "english" ? $subject["title_english"] : $subject["title"];
 
-            $startYearButton = "<input type='submit' id='startSY_{$subject['subject_id']}' name='startSY_{$subject['subject_id']}'class='btn btn-success' value='{$xml->professorPage->startSYBtn[0]}'></input>";
-            $endYearButton = "<input type='submit' id='endSY_{$subject['subject_id']}' name='endSY_{$subject['subject_id']}'class='btn btn-danger' value='{$xml->professorPage->endSYBtn[0]}'></input>";
+            $startYearButton = "<input type='submit' id='startSY_{$subject['id']}' name='startSY_{$subject['id']}'class='btn btn-success' value='{$xml->professorPage->startSYBtn[0]}'></input>";
+            $endYearButton = "<input type='submit' id='endSY_{$subject['id']}' name='endSY_{$subject['id']}'class='btn btn-danger' value='{$xml->professorPage->endSYBtn[0]}'></input>";
 
-            $sYInput = $subject["is_inactive"] === '1' ? $startYearButton : $endYearButton;
+            $sYInput = $subject["isInactive"] === "1" ? $startYearButton : $endYearButton;
+
+            $assistantName = $subject['assistant']!=null ? $subject["assistant"][0]['name_surname'] : "";
 
             $tBody .= "
-                <tr id='tr_{$subject['subject_id']}'>
-                    <td>{$subject["assistant_name_surname"]}</td>
+                <tr id='tr_{$subject['id']}'>
+                    <td>{$assistantName}</td>
                     <td>$subjectName</td>
                     <td>
-                    <input type='submit' id='lectures_{$subject['subject_id']}' name='lectures_{$subject['subject_id']}' class='btn btn-primary' value='{$xml->professorPage->lecturesBtn[0]}'></input>&nbsp;
-                        <input type='submit' id='details_{$subject['subject_id']}' name='details_{$subject['subject_id']}' class='btn btn-info' value='{$xml->professorPage->detailsBtn[0]}'></input>&nbsp;
+                    <input type='submit' id='lectures_{$subject['id']}' name='lectures_{$subject['id']}' class='btn btn-primary' value='{$xml->professorPage->lecturesBtn[0]}'></input>&nbsp;
+                        <input type='submit' id='details_{$subject['id']}' name='details_{$subject['id']}' class='btn btn-info' value='{$xml->professorPage->detailsBtn[0]}'></input>&nbsp;
                         {$sYInput}
                     </td>
                 </tr>
@@ -177,7 +183,7 @@
         return $page_context;
     }
 
-    function initiateProfessorPage2($xml,$conn){
+    function initiateProfessorPage2($xml){
         $page_context = file_get_contents(DIR_TEMPLATES . "/addNewSubject.html");
         $page_context = str_replace("{FORM_ACTION}", DIR_CORE . "/addNewSubject.php", $page_context);
         $page_context = str_replace("{SUBJECT_NAME_TITLE}",$xml->professorPage->subject_name[0], $page_context);
@@ -186,21 +192,37 @@
         $assistants = "<option value=''>-</option>";
         $studies = "";
 
-        $data = $conn->query("SELECT name_surname, staff_id FROM staff WHERE role = 'assistant';");
-        
-        while($assistant = $data->fetch_assoc()){
+        $url = "http://127.0.0.1:62812/api/getAllAssistants";
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
+
+        $data = json_decode(file_get_contents($url, false, $context), true);
+
+        foreach($data as $assistant){
             $assistants .= "
-                <option value='{$assistant["staff_id"]}'>{$assistant["name_surname"]}</option>
+                <option value='{$assistant["id"]}'>{$assistant["name_surname"]}</option>
             ";
         }
 
+        $url = "http://127.0.0.1:62812/api/getAllStudies";
+                        
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
+
         $titleLanguage = $_SESSION["language"] === "english" ? "title_english" : "title";
+        $numberOfStudies = 0;
+        $data = json_decode(file_get_contents($url, false, $context), true);
 
-        $data = $conn->query("SELECT $titleLanguage, taught_in, study_id FROM study;");
-        $numberOfStudies = 0;    
-
-
-        while($study = $data->fetch_assoc()){
+        foreach($data as $study){
             for($i = 1; $i < 5; $i++){
                 
                 if($_SESSION["language"] === "english")
@@ -208,7 +230,7 @@
                 else 
                     $localization = $study["taught_in"] === "srpski" ? "Српски језик" : "Енглески језик";
                 
-                $formatedValue = $study["study_id"] . '_' . $i;
+                $formatedValue = $study["id"] . '_' . $i;
                 $formatedName = $study["$titleLanguage"] . " - " . $localization . " ($i)";
                 
                 $studies .= "
@@ -228,7 +250,7 @@
         return $page_context;
     }
 
-    function initiateProfessorPage3($xml,$conn){
+    function initiateProfessorPage3($xml){
         $page_context = file_get_contents(DIR_TEMPLATES . "/professorReports.html");
         $page_context = str_replace("{LABEL_SUBJECTS}",$xml->professorPage->selectSubject[0], $page_context);
         $page_context = str_replace("{FORM_ACTION}",DIR_CORE . "/getGraphs.php", $page_context);
@@ -239,13 +261,19 @@
 
         $subjects = "<option value=''>-</option>";
 
-        $query = $query = sprintf("SELECT subject_id FROM subject WHERE professor_id = '%s'"
-        ,mysqli_real_escape_string($conn,$_SESSION['loggedInId']));
+        $url = "http://127.0.0.1:62812/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId'];
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        $data = $conn->query($query) or die(file_get_contents("error404.html"));
+        $data = json_decode(file_get_contents($url, false, $context), true);
 
-        while($subject_id = $data->fetch_assoc()){
-            $subjects .= "<option value='{$subject_id["subject_id"]}'>ID: {$subject_id["subject_id"]}</option>";
+        foreach($data as $subject){
+            $subjects .= "<option value='{$subject["id"]}'>ID: {$subject["id"]}</option>";
             
         }
 
@@ -254,30 +282,35 @@
         return $page_context;
     }
 
-    function initiateAssistantPage1($xml,$conn){
+    function initiateAssistantPage1($xml){
         $page_context = file_get_contents(DIR_TEMPLATES . "/teachingExercises.html");
         $page_context = str_replace("{FORM_ACTION}", DIR_CORE . "/teaching_exercises.php", $page_context);
         $page_context = str_replace("{PROFESSOR_TITLE}",$xml->registrationPage->professor[0], $page_context);
         $page_context = str_replace("{SUBJECT_TITLE}",explode("(",$xml->professorPage->subject_name[0])[0], $page_context);
         
         $tBody = "";
-        
-        $query = sprintf("SELECT subject_id, title, title_english, staff.name_surname as professor_name_surname FROM `subject`
-        INNER JOIN staff ON `subject`.professor_id = staff.staff_id
-        WHERE assistant_id = '%s';", mysqli_real_escape_string($conn,$_SESSION['loggedInId']));
-   
-        $data = $conn->query($query);
 
-        while($subject = $data->fetch_assoc()){
+        $url = "http://127.0.0.1:62812/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId'];
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
+
+        $data = json_decode(file_get_contents($url, false, $context), true);
+
+        foreach($data as $subject){
             $subjectName = $_SESSION["language"] === "english" ? $subject["title_english"] : $subject["title"];
         
             $tBody .= "
-                <tr id='tr_{$subject['subject_id']}'>
-                    <td>{$subject["professor_name_surname"]}</td>
+                <tr id='tr_{$subject['id']}'>
+                    <td>{$subject["professor"][0]["name_surname"]}</td>
                     <td>$subjectName</td>
                     <td>
-                        <input type='submit' id='exercises_{$subject['subject_id']}' name='exercises_{$subject['subject_id']}' class='btn btn-primary' value='{$xml->assistantPage->exercisesBtn[0]}'></input>&nbsp;
-                        <input type='submit' id='details_{$subject['subject_id']}' name='details_{$subject['subject_id']}' class='btn btn-info' value='{$xml->professorPage->detailsBtn[0]}'></input>&nbsp;
+                        <input type='submit' id='exercises_{$subject['id']}' name='exercises_{$subject['id']}' class='btn btn-primary' value='{$xml->assistantPage->exercisesBtn[0]}'></input>&nbsp;
+                        <input type='submit' id='details_{$subject['id']}' name='details_{$subject['id']}' class='btn btn-info' value='{$xml->professorPage->detailsBtn[0]}'></input>&nbsp;
                     </td>
                 </tr>
             ";
@@ -288,7 +321,7 @@
         return $page_context;
     }
 
-    function initiateAssistantPage2($xml, $conn){
+    function initiateAssistantPage2($xml){
         $page_context = file_get_contents(DIR_TEMPLATES . "/assistantReports.html");
         $page_context = str_replace("{LABEL_SUBJECTS}",$xml->professorPage->selectSubject[0], $page_context);
         $page_context = str_replace("{FORM_ACTION}",DIR_CORE . "/getGraphs.php", $page_context);
@@ -298,13 +331,19 @@
 
         $subjects = "<option value=''>-</option>";
 
-        $query = $query = sprintf("SELECT subject_id FROM subject WHERE assistant_id = '%s'"
-        ,mysqli_real_escape_string($conn,$_SESSION['loggedInId']));
+        $url = "http://127.0.0.1:62812/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId'];
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        $data = $conn->query($query) or die(file_get_contents("error404.html"));
+        $data = json_decode(file_get_contents($url, false, $context), true);
 
-        while($subject_id = $data->fetch_assoc()){
-            $subjects .= "<option value='{$subject_id["subject_id"]}'>ID: {$subject_id["subject_id"]}</option>";
+        foreach($data as $subject){
+            $subjects .= "<option value='{$subject["id"]}'>ID: {$subject["id"]}</option>";
             
         }
 
@@ -332,7 +371,7 @@
         return $page_context;
     }
 
-    function initiateAdminPage2($xml,$conn){
+    function initiateAdminPage2($xml){
         $page_context = file_get_contents(DIR_TEMPLATES . "/staffManagement.html");
         $page_context = str_replace("{FORM_ACTION}", DIR_CORE . "/staff_managment.php", $page_context);
         $page_context = str_replace("{NS_TITLE}",$xml->registrationPage->nameSurname[0], $page_context);
@@ -341,22 +380,31 @@
         $page_context = str_replace("{ROLE_TITLE}",$xml->adminPage->roleTitle[0], $page_context);
         
         $tBody = "";
-        
-        $data = $conn->query("SELECT * FROM staff WHERE NOT staff_id = 1"); //not showing admin data
 
-        while($staff_member = $data->fetch_assoc()){
+        $url = "http://127.0.0.1:62812/api/getAllStaff";
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
+
+        $data = json_decode(file_get_contents($url, false, $context), true);
+
+        foreach($data as $staff_member){
             $email = explode("@",$staff_member["email"])[0];
 
             $tBody .= "
                 <tr>
-                    <td><input type='text' id='newNS_{$staff_member['staff_id']}' name='newNS_{$staff_member['staff_id']}' placeholder='{$staff_member['name_surname']}'></td>
-                    <td><input type='text' id='newUE_{$staff_member['staff_id']}' name='newUE_{$staff_member['staff_id']}' placeholder='{$email}'></input>@singidunum.ac.rs</td>
-                    <td><input type='password' id='newPASS_{$staff_member['staff_id']}' name='newPASS_{$staff_member['staff_id']}' placeholder='********'></input></td>
-                    <td><input type='text' id='oldRole_{$staff_member['staff_id']}' name='oldRole_{$staff_member["staff_id"]}' value='{$staff_member["role"]}' readonly></input></td>
+                    <td><input type='text' id='newNS_{$staff_member['id']}' name='newNS_{$staff_member['id']}' placeholder='{$staff_member['name_surname']}'></td>
+                    <td><input type='text' id='newUE_{$staff_member['id']}' name='newUE_{$staff_member['id']}' placeholder='{$email}'></input>@singidunum.ac.rs</td>
+                    <td><input type='password' id='newPASS_{$staff_member['id']}' name='newPASS_{$staff_member['id']}' placeholder='********'></input></td>
+                    <td><input type='text' id='oldRole_{$staff_member['id']}' name='oldRole_{$staff_member["id"]}' value='{$staff_member["role"]}' readonly></input></td>
                     <td>
-                        <input type='submit' id='switchRole_{$staff_member['staff_id']}' name='switchRole_{$staff_member['staff_id']}' class='btn btn-info' value='{$xml->adminPage->switchRoleBtn[0]}'></input>&nbsp;
-                        <input type='submit' id='edit_{$staff_member['staff_id']}' name='edit_{$staff_member['staff_id']}' class='btn btn-warning' value='{$xml->adminPage->editBtn[0]}'></input>&nbsp;
-                        <input type='submit' id='delete_{$staff_member['staff_id']}' name='delete_{$staff_member['staff_id']}'class='btn btn-danger' value='{$xml->adminPage->deleteBtn[0]}'></input>
+                        <input type='submit' id='switchRole_{$staff_member['id']}' name='switchRole_{$staff_member['id']}' class='btn btn-info' value='{$xml->adminPage->switchRoleBtn[0]}'></input>&nbsp;
+                        <input type='submit' id='edit_{$staff_member['id']}' name='edit_{$staff_member['id']}' class='btn btn-warning' value='{$xml->adminPage->editBtn[0]}'></input>&nbsp;
+                        <input type='submit' id='delete_{$staff_member['id']}' name='delete_{$staff_member['id']}'class='btn btn-danger' value='{$xml->adminPage->deleteBtn[0]}'></input>
                     </td>
                 </tr>
             ";
@@ -366,7 +414,7 @@
         return $page_context;
     }
 
-    function initiateAdminPage3($xml, $conn){
+    function initiateAdminPage3($xml){
         $page_context = file_get_contents(DIR_TEMPLATES . "/studentsManagment.html");
         $page_context = str_replace("{FORM_ACTION}", DIR_CORE . "/students_managment.php", $page_context);
         $page_context = str_replace("{NS_TITLE}",$xml->registrationPage->nameSurname[0], $page_context);
@@ -377,23 +425,35 @@
         
         $tBody = "";
         
-        $data = $conn->query("SELECT * FROM student");
+        $url = "http://127.0.0.1:62812/api/getAllStudents";
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        while($student = $data->fetch_assoc()){
+        $data = json_decode(file_get_contents($url, false, $context), true);
+
+        foreach($data as $student){
             $email = explode("@",$student["email"])[0];
-            $studentEnrollment_temp = getEnrollment($student['student_id'], $conn);
-            $studentEnrollment = explode("-",$studentEnrollment_temp)[0] . "<br>" . explode("-",$studentEnrollment_temp)[1];
+            $studentEnrollment = $student["study"] . "<br>" . explode("-",$studentEnrollment_temp)[1];
+
+            $studentEnrollment = $_SESSION["language"] === "english" ? 
+                    $student["study"][0]["faculty_title_english"] . " - " . $student["study"][0]["title_english"]: 
+                    $student["study"][0]["faculty_title"] . " - " . $student["study"][0]["title"];
 
             $tBody .= "
                 <tr>
-                    <td><input type='text' id='newNS_{$student['student_id']}' name='newNS_{$student['student_id']}' placeholder='{$student['name_surname']}'></td>
-                    <td><input type='text' id='newIX_{$student['student_id']}' name='newIX_{$student['student_id']}' placeholder='{$student['index']}'></td>
-                    <td><input type='password' id='newPASS_{$student['student_id']}' name='newPASS_{$student['student_id']}' placeholder='********'></input></td>
-                    <td><input type='text' id='newUE_{$student['student_id']}' name='newUE_{$student['student_id']}' placeholder='{$email}'></input>@singimail.rs</td>
+                    <td><input type='text' id='newNS_{$student['id']}' name='newNS_{$student['id']}' placeholder='{$student['name_surname']}'></td>
+                    <td><input type='text' id='newIX_{$student['id']}' name='newIX_{$student['id']}' placeholder='{$student['index']}'></td>
+                    <td><input type='password' id='newPASS_{$student['id']}' name='newPASS_{$student['id']}' placeholder='********'></input></td>
+                    <td><input type='text' id='newUE_{$student['id']}' name='newUE_{$student['id']}' placeholder='{$email}'></input>@singimail.rs</td>
                     <td>$studentEnrollment</td>
                     <td>
-                        <input type='submit' id='edit_{$student['student_id']}' name='edit_{$student['student_id']}' class='btn btn-warning' value='{$xml->adminPage->editBtn[0]}'></input>&nbsp;
-                        <input type='submit' id='delete_{$student['student_id']}' name='delete_{$student['student_id']}'class='btn btn-danger' value='{$xml->adminPage->deleteBtn[0]}'></input>
+                        <input type='submit' id='edit_{$student['id']}' name='edit_{$student['id']}' class='btn btn-warning' value='{$xml->adminPage->editBtn[0]}'></input>&nbsp;
+                        <input type='submit' id='delete_{$student['id']}' name='delete_{$student['id']}'class='btn btn-danger' value='{$xml->adminPage->deleteBtn[0]}'></input>
                     </td>
                 </tr>
             ";
@@ -403,7 +463,7 @@
         return $page_context;
     }
 
-    function initiateAdminPage4($xml, $conn){
+    function initiateAdminPage4($xml){
         $page_context = file_get_contents(DIR_TEMPLATES . "/adminReports.html");
         $page_context = str_replace("{LABEL_SUBJECTS}",$xml->professorPage->selectSubject[0], $page_context);
         $page_context = str_replace("{FORM_ACTION}",DIR_CORE . "/getGraphs.php", $page_context);
@@ -414,29 +474,26 @@
 
         $subjects = "<option value=''>-</option>";
 
-        $query = $query = sprintf("SELECT subject_id FROM subject");
+        $url = "http://127.0.0.1:62812/api/getAllSubjects";
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        $data = $conn->query($query) or die(file_get_contents("error404.html"));
+        $data = json_decode(file_get_contents($url, false, $context), true);
 
-        while($subject_id = $data->fetch_assoc()){
-            $subjects .= "<option value='{$subject_id["subject_id"]}'>ID: {$subject_id["subject_id"]}</option>";
+
+        foreach($data as $subject){
+            $subjects .= "<option value='{$subject["id"]}'>ID: {$subject["id"]}</option>";
             
         }
 
         $page_context = str_replace("{SUBJECTS}",$subjects, $page_context);
 
         return $page_context;
-    }
-
-    function getEnrollment($student_id, $conn){
-        $titleLanguage = $_SESSION["language"] === "english" ? "title_english" : "title";
-        $query = sprintf("SELECT concat(faculty.$titleLanguage, ' - ', study.$titleLanguage, ' (', student.year, ')') as enrollmentData
-            FROM faculty 
-            INNER JOIN study ON study.faculty_id = faculty.faculty_id
-            INNER JOIN student ON student.study_id = study.study_id
-            WHERE student.student_id = '%s';", mysqli_real_escape_string($conn, $student_id));
-        
-        return $conn->query($query)->fetch_assoc()["enrollmentData"];
     }
 
     function initiateFooter($xml){
@@ -451,8 +508,8 @@
         return $footer;
     }
 
-    function authenticateAdmin($xml,$conn){
-        $adminPass = "$2y$10$5r23wvFZGvpRyi/wYn82gOLrAF4Nkma2.sfOt5yHACX4IviU6nSP2";
+    function authenticateAdmin($xml){
+        $adminPass = "$2y$10\$zeRF8YO1yIitpNMyuyHMpuYwBFRcPh96L6Bol0AE1wztZpiUfKU9S";
         
         header("WWW-Authenticate: Basic realm=\"Administrator panel\"");
         header("HTTP/1.0 401 Unauthorized");
@@ -464,6 +521,4 @@
 
         echo "<script>window.location = 'index.php?language={$_SESSION["language"]}&page=login';</script>";
     }
-
-    $conn->close();
 ?>

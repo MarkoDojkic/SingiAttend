@@ -1,32 +1,35 @@
 <?php
-
     session_start();
     require "../../constants.php";
-    require_once "database_connection.php";
 
     $xml = @simplexml_load_file(DIR_ROOT . DIR_LANGUAGES . "/{$_SESSION["language"]}.xml")  or die(file_get_contents(DIR_ROOT . "/error404.html"));
 
     foreach(array_keys($_POST) as $key){
-       
         switch(explode('_',$key)[0]){
-            case 'details': showDetails(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'edit': editSubject(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'viewStudents': viewAttendingStudents(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'exercises': viewExercises(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'startNE': startNewExercise(explode('_',$key)[1],$xml,$conn); break 2;
+            case 'details': showDetails(explode('_',$key)[1],$xml); break 2;
+            case 'viewStudents': viewAttendingStudents(explode('_',$key)[1],$xml); break 2;
+            case 'exercises': viewExercises(explode('_',$key)[1],$xml); break 2;
+            case 'startNE': startNewExercise(explode('_',$key)[1],$xml); break 2;
             case 'cancel': exit;
             default: continue 2;
         }
     }
 
-    function showDetails($id,$xml,$conn){
-        $query = sprintf("SELECT title, title_english, professor_id FROM `subject`
-        WHERE subject_id = '%s';", mysqli_real_escape_string($conn,$id));
+    function showDetails($id,$xml){
+        $url = "http://127.0.0.1:62812/api/getSubject/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        $data = $conn->query($query)->fetch_assoc();
+        $data = json_decode(file_get_contents($url, false, $context), true);
+
         $action = DIR_ROOT_ONLY . DIR_CORE . "/teaching_exercises.php";
 
-        $professor = $conn->query("SELECT name_surname FROM staff WHERE staff_id = '{$data["professor_id"]}';")->fetch_assoc()["name_surname"];
+        $professor = $data["professor"][0]["name_surname"];
 
         echo "
         <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css'>
@@ -58,37 +61,51 @@
         </form>";
     }  
 
-    function viewAttendingStudents($id,$xml,$conn){
+    function viewAttendingStudents($id,$xml){
         $alert = "{$xml->assistantPage->viewStudentsText[0]}";
         $localization = $_SESSION["language"] === "english" ? "title_english" : "title";
+        
+        $url = "http://127.0.0.1:62812/api/allStudentBySubjectId/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));    
 
-        $query = sprintf("SELECT DISTINCT student.name_surname, student.index, faculty.{$localization} as faculty, study.{$localization} as study, student.year as year FROM subject_study
-        INNER JOIN study ON subject_study.study_id = study.study_id
-        INNER JOIN student ON subject_study.study_id = student.study_id
-        INNER JOIN faculty ON study.faculty_id = faculty.faculty_id
-        INNER JOIN `subject` ON subject_study.subject_id = `subject`.subject_id
-        WHERE subject_study.subject_id = '%s' AND  subject.is_inactive = '0'",mysqli_real_escape_string($conn,$id));
+        $data = json_decode(file_get_contents($url, false, $context), true);
 
+        foreach($data as $attendingStudent){
+            $lang = $attendingStudent["study"]["taught_in"] === "engleski" ? $xml->professorPage->englishStudent[0] : $xml->professorPage->serbianStudent[0];
+            $study = $_SESSION["language"] === "english" ? 
+            $attendingStudent["study"][0]["faculty_title_english"] . ", " . $attendingStudent["study"][0]["title_english"] . ", " . $lang:
+            $attendingStudent["study"][0]["faculty_title"] . ", " . $attendingStudent["study"][0]["title"] . ", " . $lang;
 
-        $data = $conn->query($query) or die($xml->errors->viewAttendingStudentsError[0]);
-
-        while($attendingStudent = $data->fetch_assoc()){
-            $alert .= "\\n - {$attendingStudent["name_surname"]} ({$attendingStudent["index"]}) - {$attendingStudent["faculty"]} ({$attendingStudent["study"]})";
+            $alert .= "\\n - {$attendingStudent["name_surname"]} ({$attendingStudent["index"]}) - {$attendingStudent["faculty"]} ({$study})";
         }
 
         if(!strpos($alert,'-')) $alert = $xml->assistantPage->schoolYearOver[0];
-
+        //returns 1 (true) if - does not exist in the string (i.e. in the case if there are no students or if the subject is inactive - subject.is_inactive = '1'
+        
         echo "<script>alert('{$alert}');</script>";
-        showDetails($id,$xml,$conn);
+        showDetails($id,$xml);
     }
 
-    function viewExercises($id,$xml,$conn){
+    function viewExercises($id,$xml){
 
-        $query = sprintf("SELECT is_inactive FROM subject WHERE subject_id = '%s'",mysqli_real_escape_string($conn,$id));
+        $url = "http://127.0.0.1:62812/api/subjectIsInactiveById/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        $data = $conn->query($query)->fetch_assoc() or die("<i style='color:red;font-size:14px;'> - " . $xml->errors->viewLEError[0]. "</i>");;
+        $data = file_get_contents($url, false, $context);
 
-        if($data['is_inactive']) 
+        if($data === 'true') 
             die ("
             <script>
             alert('{$xml->assistantPage->schoolYearOver[0]}');
@@ -99,13 +116,19 @@
 
         $exercises = "<option value=''>-</option>";
 
-        $query = sprintf("SELECT exercise_id FROM exercise WHERE log_file_name LIKE '%s\_%%'"
-                    ,mysqli_real_escape_string($conn,$id));
+        $url = "http://127.0.0.1:62812/api/getAllExercises/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        $data = $conn->query($query) or die("<i style='color:red;font-size:14px;'> - " . $xml->errors->viewLEError[0]. "</i>");
-
-        while($exercise = $data->fetch_assoc()){
-            $exercises .= "<option value='{$exercise['exercise_id']}'>ID: {$exercise['exercise_id']}</option>";
+        $data = json_decode(file_get_contents($url, false, $context), true);
+        
+        foreach($data as $exercise){
+            $exercises .= "<option value='{$exercise['id']}'>ID: {$exercise['id']}</option>";
         }
 
         $dateLocal = $_SESSION["language"] === "english" ? date("Y-m-d") : date("d.m.Y");
@@ -170,61 +193,44 @@
         ";
     }
 
+    function startNewExercise($id,$xml){
 
-    function startNewExercise($id,$xml,$conn){
+        $url = "http://127.0.0.1:62812/api/getLastExercise/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
+
+        $lastExerciseData = json_decode(file_get_contents($url, false, $context), true);
 
         $exerciseLength = date_diff(new DateTime($_POST['start_time']),new DateTime($_POST['end_time']));
         
-        $query = sprintf("SELECT log_file_name, end_time FROM exercise WHERE log_file_name LIKE '%s_%%' 
-                                        ORDER BY end_time DESC LIMIT 1", mysqli_real_escape_string($conn,$id));
-
-        $lastExerciseData = $conn->query($query)->fetch_assoc() or null;
-        $lengthFromLastExercise = date_diff(new DateTime($_POST['start_time']),new DateTime($_POST['start_time']));
+        $lengthFromLastExercise = date_diff(date_create('2015-01-26 13:15:00'),date_create('2015-01-26 13:15:00'));
         //defaultly set so it'll have invert parametar 0 to pass if test below
 
-        $var = explode("^",file_get_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/" . "exerciseLogs/" 
-        . $lastExerciseData["log_file_name"])); //example of test data [1.2020-12-01,11:30$12:45]
-
-        $dateTime = explode(".",$var[0])[1] . explode("$",$var[1])[1];
-        $dateTime = explode("\n", $dateTime)[0];
         if($lastExerciseData != null)
-            $lengthFromLastExercise = date_diff(new DateTime($dateTime),new DateTime($_POST['start_time']));
+            $lengthFromLastExercise = date_diff(new DateTime($lastLectureData["ended_at"]),new DateTime($_POST['start_time'])); 
 
         if($exerciseLength->i < 45 && $exerciseLength->h == 0 // incorrect: 12:00->12:44;12:00->11:59;12:00->18:01
-            || $exerciseLength->invert === 1 || $exerciseLength->h > 6 || $lengthFromLastExercise->invert === 1) {
-                echo "<script>alert('{$xml->errors->LELengthInvalid[0]}');</script>";
-                viewExercises($id,$xml,$conn);
-                exit;
-            }
+            || $exerciseLength->invert === 1 || $exerciseLength->h > 6 || $exerciseLength->h == 6 && $exerciseLength->i != 0 || $lengthFromLastExercise->invert === 1) {
+            echo "<script>alert('{$xml->errors->LELengthInvalid[0]}');</script>";
+            viewExercises($id,$xml,$conn);
+            exit;
+        }
 
-        file_put_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/" . "exerciseLogs/" 
-        . $lastLectureData["log_file_name"], "----------------------------------------", FILE_APPEND | LOCK_EX);
+        $url = "http://127.0.0.1:62812/api/insert/exercise/" . $id . "/" . $_POST['start_time'] . "/" . $_POST['end_time'];
+            
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'PUT'
+        )));
 
-        do {
-            $log_file_name = $id . "_" . random_int($id, 100*$id) . '.log'; //generate unique log filename (up to 100 exercises per subject)
-        } while(file_exists(DIR_ROOT . DIR_MISCELLANEOUS . "/exerciseLogs/" . $log_file_name));
-
-        $query = sprintf("INSERT INTO exercise (log_file_name,start_time,end_time) VALUES ('%s','%s','%s')",
-                        mysqli_real_escape_string($conn,$log_file_name),
-                        mysqli_real_escape_string($conn,$_POST['start_time']),
-                        mysqli_real_escape_string($conn,$_POST['end_time']));
-
-        $conn->query($query) or die("<script>alert('{$xml->errors->startLEError[0]}');</script>");
-
-        $query = sprintf("SELECT count(exercise_id) as count FROM exercise WHERE log_file_name LIKE '%s_%%'"
-                    ,mysqli_real_escape_string($conn,$id));
-
-        $count = $conn->query($query)->fetch_assoc()["count"];
-
-        $data = $count . "." . date("Y-m-d") . '^' . $_POST['start_time'] . '$' . $_POST['end_time'] . "\n";
-
-        file_put_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/exerciseLogs/" . $log_file_name, $data, LOCK_EX);
-
-        $query = sprintf("UPDATE `subject` SET last_exercise_at = '%s' WHERE subject_id = '%s';", 
-                mysqli_real_escape_string($conn, date("Y-m-d") . " " . $_POST['start_time']),
-                mysqli_real_escape_string($conn, $id));
-
-        $conn->query($query);
+        file_get_contents($url, false, $context);
 
         echo("<script>alert('{$xml->assistantPage->startNewExerciseSuccessfull[0]}');</script>");
 
