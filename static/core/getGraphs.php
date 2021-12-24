@@ -2,40 +2,47 @@
 
     session_start();
     require "../../constants.php";
-    require_once "database_connection.php";
-
-    $logFolder = $_SESSION["loggedInAs"] === "professor" ? "lectureLogs" : "exerciseLogs";
 
     $xml = @simplexml_load_file(DIR_ROOT . DIR_LANGUAGES . "/{$_SESSION["language"]}.xml")  or die(file_get_contents(DIR_ROOT . "/error404.html"));
     $attended = "";
     $notAttended = "";
-    $attendancesData = "[";
+    $attendancesData = "";
     $datesData = "[";
 
-    $query = sprintf("SELECT DISTINCT count(student.student_id) as totalStudents FROM subject_study
-                INNER JOIN study ON subject_study.study_id = study.study_id
-                INNER JOIN student ON subject_study.study_id = student.study_id
-                INNER JOIN faculty ON study.faculty_id = faculty.faculty_id
-                INNER JOIN `subject` ON subject_study.subject_id = `subject`.subject_id
-                WHERE subject_study.subject_id = '%s' AND  subject.is_inactive = '0'",mysqli_real_escape_string($conn,$_POST["subjectSelection"]));
+    $url = "http://127.0.0.1:62812/api/totalStudents/" . $_POST["subjectSelection"];
+                
+    $context = stream_context_create(array(
+        "http" => array(
+            "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+            "protocol_version" => 1.1,
+            'method' => 'GET'
+    )));
 
-    $totalStudents = $conn->query($query)->fetch_assoc()['totalStudents'];
+    $totalStudents = json_decode(file_get_contents($url, false, $context));
+
     $attendedTotalLectures = 0;
     $totalStudentsAllLectures = 0;
 
-    $dir = new DirectoryIterator(DIR_ROOT . DIR_MISCELLANEOUS . "/" . $logFolder);
+    $suffix = strcmp($_SESSION["loggedInAs"], "professor") === 0 ? "Lectures" : "Exercises";
 
-    foreach ($dir as $fileinfo) {
-        if (!$fileinfo->isDot()) {
-            if(explode("_",$fileinfo->getFilename())[0] == $_POST["subjectSelection"]){
-                $attended .= count(file($fileinfo->getPathname()))-2 . ",";
-                $notAttended .= ($totalStudents-(count(file($fileinfo->getPathname()))-2)) . ",";
-                $date = explode(".",explode("^",file_get_contents($fileinfo->getPathname()))[0])[1];
-                $datesData .= "\"" . $date . "\",";
-                $attendedTotalLectures += count(file($fileinfo->getPathname()))-2;
-                $totalStudentsAllLectures += $totalStudents;
-            }
-        }
+    
+    $url = "http://127.0.0.1:62812/api/getAll" . $suffix . "/" . $_POST["subjectSelection"];
+
+    $context = stream_context_create(array(
+        "http" => array(
+            "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+            "protocol_version" => 1.1,
+            'method' => 'GET'
+    )));
+
+    $lectures = json_decode(file_get_contents($url, false, $context), true);
+
+    foreach($lectures as $lecture){
+        $attended .= "\"" . sizeof($lecture["attended_students"]) . "\",";
+        $notAttended .= "\"" . ($totalStudents - sizeof($lecture["attended_students"])) . "\",";
+        $datesData .= "\"" . explode("T", $lecture['started_at'])[0] .  "\",";
+        $attendedTotalLectures += sizeof($lecture["attended_students"]);
+        $totalStudentsAllLectures += $totalStudents;
     }
 
     $attended = substr($attended,0,strlen($attended)-1); //remove last ,
@@ -51,7 +58,7 @@
         data: [$notAttended]
     }]";
 
-    $datesData = substr($datesData,0,strlen($datesData)-1) . "]";
+    $datesData .= "]";
     
     if(empty($attended)) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
 
@@ -88,21 +95,25 @@
         $attendedTotalExercieses = 0;
         $totalStudentsAllExercieses = 0;
 
-        $dir = new DirectoryIterator(DIR_ROOT . DIR_MISCELLANEOUS . "/exerciseLogs");
+        $url = "http://127.0.0.1:62812/api/getAllExercises/" . $_POST["subjectSelection"];
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        foreach ($dir as $fileinfo) {
-            if (!$fileinfo->isDot()) {
-                if(explode("_",$fileinfo->getFilename())[0] == $_POST["subjectSelection"]){
-                    $attended .= count(file($fileinfo->getPathname()))-2 . ",";
-                    $notAttended .= ($totalStudents-(count(file($fileinfo->getPathname()))-2)) . ",";
-                    $date = explode(".",explode("^",file_get_contents($fileinfo->getPathname()))[0])[1];
-                    $datesData .= "\"" . $date . "\",";
-                    $attendedTotalExercieses += count(file($fileinfo->getPathname()))-2;
-                    $totalStudentsAllExercieses += $totalStudents;
-                }
-            }
+        $exercises = json_decode(file_get_contents($url, false, $context), true);
+
+        foreach($exercises as $exercise){
+            $attended .= "\"" . sizeof($exercise["attended_students"]) . "\",";
+            $notAttended .= "\"" . ($totalStudents - sizeof($exercise["attended_students"])) . "\",";
+            $datesData .= "\"" . explode("T", $exercise['started_at'])[0] .  "\",";
+            $attendedTotalExercieses += sizeof($exercise["attended_students"]);
+            $totalStudentsAllExercieses += $totalStudents;
         }
-
+        
         if($attendedTotalExercieses === 0) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
 
         $percentageAL = round($attendedTotalLectures/$totalStudentsAllLectures*100);

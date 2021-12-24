@@ -98,7 +98,7 @@
 
         $query = sprintf("DELETE FROM student WHERE student_id = '%s';",mysqli_real_escape_string($conn,$id));
         $conn->query($query) or showErrorAlert($xml->errors->deleteError[0]);
-
+//Update with delete student
         reloadPage();
     }
 
