@@ -2,25 +2,23 @@ package dev.markodojkic.singiattend.server.service;
 
 import dev.markodojkic.singiattend.server.entity.*;
 import dev.markodojkic.singiattend.server.repository.*;
-import org.apache.tools.ant.DirectoryScanner;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class ServerService implements IServerService {
     @Autowired
     private IExerciseRepository exerciseRepository;
-    @Autowired
-    private IFacultyRepository facultyRepository;
     @Autowired
     private ILectureRepository lectureRepository;
     @Autowired
@@ -35,11 +33,11 @@ public class ServerService implements IServerService {
     @Override
     public Staff addNewStaffMember(Staff newStaff, boolean isUpdate) {
         if(!isUpdate) newStaff.setPassword_hash(this.encryptPassword(newStaff.getPassword_hash()));
-        return this.staffRepository.saveAndFlush(newStaff);
+        return this.staffRepository.save(newStaff);
     }
 
     @Override
-    public Staff updateStaffMemberById(int id, Staff newStaffData) {
+    public Staff updateStaffMemberById(String id, Staff newStaffData) {
         Staff staff = staffRepository.findById(id).isPresent() ? staffRepository.findById(id).get() : null;
         if(staff == null) return null;
         if(newStaffData.getEmail() != null && !newStaffData.getEmail().isBlank()) staff.setEmail(newStaffData.getEmail());
@@ -50,18 +48,18 @@ public class ServerService implements IServerService {
     }
 
     @Override
-    public boolean checkPassword(int id, String plainPassword) {
+    public boolean checkPassword(String id, String plainPassword) {
         return this.encryptPassword(plainPassword).equals(this.staffRepository.findById(id).get().getPassword_hash());
     }
 
     @Override
     public Student addNewStudent(Student newStudent, boolean isUpdate) {
         if(!isUpdate) newStudent.setPassword_hash(this.encryptPassword(newStudent.getPassword_hash()));
-        return this.studentRepository.saveAndFlush(newStudent);
+        return this.studentRepository.save(newStudent);
     }
 
     @Override
-    public Student updateStudentById(int id, Student newStudentData) {
+    public Student updateStudentById(String id, Student newStudentData) {
         Student student = studentRepository.findById(id).isPresent() ? studentRepository.findById(id).get() : null;
         if(student == null) return null;
         if(newStudentData.getYear() != null && newStudentData.getYear().isEmpty()) student.setYear(newStudentData.getYear());
@@ -69,7 +67,7 @@ public class ServerService implements IServerService {
         if(newStudentData.getName_surname() != null && !newStudentData.getName_surname().isEmpty()) student.setName_surname(newStudentData.getName_surname());
         if(newStudentData.getIndex() != null && !newStudentData.getIndex().isEmpty()) student.setIndex(newStudentData.getIndex());
         if(newStudentData.getPassword_hash() != null && !newStudentData.getPassword_hash().isEmpty()) student.setPassword_hash(this.encryptPassword(newStudentData.getPassword_hash()));
-        if(newStudentData.getStudyId() != 0) student.setStudyId(newStudentData.getStudyId());
+        if(!newStudentData.getStudyId().isBlank()) student.setStudyId(newStudentData.getStudyId());
         return this.addNewStudent(student, true);
     }
 
@@ -77,15 +75,15 @@ public class ServerService implements IServerService {
     public String checkPasswordStudent(String index, String plainPassword) {
         final String index_ = index.substring(0, index.length() - 6) + "/" + index.substring(index.length() - 6);
         Optional<Student> optionalStudent = this.studentRepository.findAll().stream().filter(s -> s.getIndex().equals(index_)).findAny();
-        if(!optionalStudent.isPresent()) return "UNKNOWN";
-        int id = optionalStudent.get().getId();
+        if(optionalStudent.isEmpty()) return "UNKNOWN";
+        String id = optionalStudent.get().getId();
         return this.encryptPassword(plainPassword).equals(this.studentRepository.findById(id).get().getPassword_hash()) ? "VALID" : "INVALID";
     }
 
     @Override
     public String getNameSurnameStudent(String index) {
         final String index_ = index.substring(0, index.length() - 6) + "/" + index.substring(index.length() - 6);
-        return studentRepository.getNameSurname(index_) == null || studentRepository.getNameSurname(index_).isEmpty() ? "-???-" : studentRepository.getNameSurname(index_);
+        return this.studentRepository.getByIndex(index_) == null || this.studentRepository.getByIndex(index_).getName_surname().isEmpty() ? "-???-" : studentRepository.getByIndex(index_).getName_surname();
     }
 
     @Override
@@ -95,8 +93,20 @@ public class ServerService implements IServerService {
     }
 
     @Override
-    public String recordAttendance(int subjectId, String index, boolean isExercise) {
+    public String recordAttendance(String subjectId, String index, boolean isExercise) {
         final String index_ = index.substring(0, index.length() - 6) + "/" + index.substring(index.length() - 6);
+
+        if(isExercise){
+            Lecture lecture = this.lectureRepository.getLast(subjectId);
+            lecture.getAttended_students().add(this.studentRepository.getByIndex(index_).getId());
+            this.lectureRepository.save(lecture);
+            return "SUCCESS";
+        } else {
+            Exercise exercise = this.exerciseRepository.getLast(subjectId);
+            exercise.getAttended_students().add(this.studentRepository.getByIndex(index_).getId());
+            return "SUCCESS";
+        }
+/*
         String baseDir = "/Volumes/Podaci/Web/XAMPP/SingiAttend/static/miscellaneous/" + (isExercise ? "exercise" : "lecture") + "Logs";
         DirectoryScanner directoryScanner = new DirectoryScanner();
         directoryScanner.setBasedir(baseDir);
@@ -128,8 +138,7 @@ public class ServerService implements IServerService {
                 }
             } catch (IOException e) { }
         }
-
-        return ""; //Unknown error while recording attendance
+        */
     }
 
     @Override
@@ -152,44 +161,20 @@ public class ServerService implements IServerService {
         return output;
     }
 
-    private int getTotalPractices(int subjectId) {
-        String baseDir = "/Volumes/Podaci/Web/XAMPP/SingiAttend/static/miscellaneous/exerciseLogs";
-        DirectoryScanner directoryScanner = new DirectoryScanner();
-        directoryScanner.setBasedir(baseDir);
-        directoryScanner.setIncludes(new String[]{subjectId + "_*.log"});
-        directoryScanner.setCaseSensitive(false);
-        directoryScanner.scan();
-        return directoryScanner.getIncludedFilesCount();
+    private int getTotalPractices(String subjectId) {
+        return this.exerciseRepository.getAllBySubject(subjectId).size();
     }
 
-    private int getTotalLectures(int subjectId) {
-        String baseDir = "/Volumes/Podaci/Web/XAMPP/SingiAttend/static/miscellaneous/lectureLogs";
-        DirectoryScanner directoryScanner = new DirectoryScanner();
-        directoryScanner.setBasedir(baseDir);
-        directoryScanner.setIncludes(new String[]{subjectId + "_*.log"});
-        directoryScanner.setCaseSensitive(false);
-        directoryScanner.scan();
-        return directoryScanner.getIncludedFilesCount();
+    private int getTotalLectures(String subjectId) {
+        return this.lectureRepository.getAllBySubject(subjectId).size();
     }
 
-    private int getAttendedPractices(int subjectId, String index) {
-        String baseDir = "/Volumes/Podaci/Web/XAMPP/SingiAttend/static/miscellaneous/exerciseLogs";
-        DirectoryScanner directoryScanner = new DirectoryScanner();
-        directoryScanner.setBasedir(baseDir);
-        directoryScanner.setIncludes(new String[]{subjectId + "_*.log"});
-        directoryScanner.setCaseSensitive(false);
-        directoryScanner.scan();
-        return countAttendancesFromFolder(index, baseDir, directoryScanner);
+    private int getAttendedPractices(String subjectId, String index) {
+        return this.exerciseRepository.getAllAttended(subjectId, this.studentRepository.getByIndex(index).getId()).size();
     }
 
-    private int getAttendedLectures(int subjectId, String index) {
-        String baseDir = "/Volumes/Podaci/Web/XAMPP/SingiAttend/static/miscellaneous/lectureLogs";
-        DirectoryScanner directoryScanner = new DirectoryScanner();
-        directoryScanner.setBasedir(baseDir);
-        directoryScanner.setIncludes(new String[]{subjectId + "_*.log"});
-        directoryScanner.setCaseSensitive(false);
-        directoryScanner.scan();
-        return countAttendancesFromFolder(index, baseDir, directoryScanner);
+    private int getAttendedLectures(String subjectId, String index) {
+        return this.lectureRepository.getAllAttended(subjectId, this.studentRepository.getByIndex(index).getId()).size();
     }
 
     private String encryptPassword(String plain) {
@@ -202,23 +187,5 @@ public class ServerService implements IServerService {
         } catch (NoSuchPaddingException | NoSuchAlgorithmException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
             return "";
         }
-    }
-
-    private int countAttendancesFromFolder(String index, String baseDir, DirectoryScanner directoryScanner) {
-        String[] logFiles = directoryScanner.getIncludedFiles();
-        int output = 0;
-
-        for (String logFileString:logFiles) {
-            try {
-                File logFile = new File(baseDir + "/" + logFileString);
-                Scanner scanner = new Scanner(logFile);
-                while (scanner.hasNextLine()){
-                    String nextLine = scanner.nextLine();
-                    if(nextLine.contains(index)) output++;
-                }
-            } catch (IOException e) { }
-        }
-
-        return output;
     }
 }
