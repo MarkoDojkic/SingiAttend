@@ -4,19 +4,25 @@
     require_once "database_connection.php";
 
     $temp = $_SESSION["loggedInAs"] == "professor" ? "assistant"  : "professor";
-    $primaryKey = $temp . "_id";
 
     $xml = @simplexml_load_file(DIR_ROOT . DIR_LANGUAGES . "/{$_SESSION["language"]}.xml")  or die(file_get_contents(DIR_ROOT . "/error404.html"));
 
-    $query = sprintf("SELECT title, title_english, staff.name_surname as name_surname FROM `subject`
-    LEFT JOIN staff ON `subject`.{$primaryKey} = staff.staff_id
-    WHERE subject_id = '%s';", mysqli_real_escape_string($conn,$_POST['subject_id']));
+    $url = "http://127.0.0.1:62812/api/getSubject/" . $_POST['subject_id'];
+                
+    $context = stream_context_create(array(
+        "http" => array(
+            "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+            "protocol_version" => 1.1,
+            'method' => 'GET'
+    )));
 
-    $data = $conn->query($query)->fetch_assoc();
+    $data = json_decode(file_get_contents($url, false, $context), true);
 
+    $nS = empty($data[$temp]) ? "" : $data[$temp][0]["name_surname"];
+    
     echo "
         {$xml->professorPage->subject_name[0]}: <br><br> {$data["title"]}/<br>{$data["title_english"]} <br><br>
-        {$xml->registrationPage->{$temp}[0]}: <br><br> {$data["name_surname"]} <br><br>
+        {$xml->registrationPage->{$temp}[0]}: <br><br> {$nS} <br><br>
     ";
 
 ?>

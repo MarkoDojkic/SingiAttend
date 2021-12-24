@@ -1,9 +1,9 @@
 <component name="libraryTable">
   <library name="apache.ant" type="repository">
-    <properties maven-id="org.apache.ant:ant:1.9.5" />
+    <properties maven-id="org.apache.ant:ant:1.10.12" />
     <CLASSES>
-      <root url="jar://$MAVEN_REPOSITORY$/org/apache/ant/ant/1.9.5/ant-1.9.5.jar!/" />
-      <root url="jar://$MAVEN_REPOSITORY$/org/apache/ant/ant-launcher/1.9.5/ant-launcher-1.9.5.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/ant/ant/1.10.12/ant-1.10.12.jar!/" />
+      <root url="jar://$MAVEN_REPOSITORY$/org/apache/ant/ant-launcher/1.10.12/ant-launcher-1.10.12.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

@@ -1,7 +1,6 @@
 <?php
     session_start();
     require "../../constants.php";
-    require_once "database_connection.php";
 
     $xml = @simplexml_load_file(DIR_ROOT . DIR_LANGUAGES . "/{$_SESSION["language"]}.xml")  or die(file_get_contents(DIR_ROOT . "/error404.html"));
 
@@ -22,40 +21,48 @@
     }
     else {
 
+        $enrolled_students = array();
+
         foreach($_POST['studies'] as $study_id){ //format studyID_takingYear (non taking selection is null)
-            $studies[] = explode("_",$study_id)[0];
-            $year[] = explode("_",$study_id)[1];
+            $url = "http://127.0.0.1:62812/api/getAllStudents/" . explode("_",$study_id)[0] . "/" . explode("_",$study_id)[1];
+                        
+            $context = stream_context_create(array(
+                "http" => array(
+                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "protocol_version" => 1.1,
+                    'method' => 'GET'
+            )));
+
+            $data = json_decode(file_get_contents($url, false, $context), true);
+            
+            foreach($data as $student){
+                array_push($enrolled_students, $student['id']);
+            }
         }
 
         $checkingTitle_temp = explode("/",$subject_name)[0];
 
-        if($assistant === ""){
-            $query = sprintf("INSERT INTO subject (title,title_english,professor_id) VALUES ('%s','%s','%s');",
-                            mysqli_real_escape_string($conn,$checkingTitle_temp), 
-                            mysqli_real_escape_string($conn,explode("/",$subject_name)[1]),
-                            mysqli_real_escape_string($conn,$_SESSION['loggedInId']));
-        }
-        else {
-            $query = sprintf("INSERT INTO subject (title,title_english,professor_id,assistant_id) VALUES ('%s','%s','%s','%s');",
-                            mysqli_real_escape_string($conn,$checkingTitle_temp), 
-                            mysqli_real_escape_string($conn,explode("/",$subject_name)[1]),
-                            mysqli_real_escape_string($conn,$_SESSION['loggedInId']),
-                            mysqli_real_escape_string($conn,$assistant));
-        }
+        $url = "http://127.0.0.1:62812/api/addNewSubject";
 
-        $conn->query($query) or die("<i style='color:red;font-size:14px;'>" . $xml->errors->addSubjectError[0] . " (1)</i><br><br>"); //subject already exists
+        $subjectData = json_encode(array(
+            "title" => explode("/",$subject_name)[0],
+            "title_english" => explode("/",$subject_name)[1],
+            "professorId" => $_SESSION['loggedInId'],
+            "assistantId" => $assistant,
+            "enroled_students" => $enrolled_students,
+            "isInactive" => "1"
+        ));
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'POST',
+                'content' => $subjectData
+        )));
 
-        $subject_id = $conn->query("SELECT subject_id FROM subject WHERE title = '{$checkingTitle_temp}';")->fetch_assoc()['subject_id'] 
-                            or die("<i style='color:red;font-size:14px;'>" . $xml->errors->addSubjectError[0] . " (2)</i><br><br>");
+        $response = file_get_contents($url, false, $context, true);
 
-        for($i = 0; $i < sizeof($studies); $i++){
-            $query = sprintf("INSERT INTO subject_study (study_id,subject_id,year) VALUES ('%s','%s','%s');",
-                            mysqli_real_escape_string($conn,$studies[$i]),
-                            mysqli_real_escape_string($conn,$subject_id),
-                            mysqli_real_escape_string($conn,$year[$i]));
-            $conn->query($query) or die("<i style='color:red;font-size:14px;'>" . $xml->errors->addSubjectError[0] . " (3)</i><br><br>");
-        }
-        
         echo "<i style='color:green;font-size:14px;'> + {$xml->professorPage->addSubjectSuccessfull[0]}</i><br><br>";
 
         echo "<script>setTimeout(function(){

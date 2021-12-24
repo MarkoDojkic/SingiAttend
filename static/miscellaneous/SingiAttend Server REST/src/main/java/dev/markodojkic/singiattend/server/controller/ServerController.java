@@ -24,13 +24,13 @@ public class ServerController {
 
     @RequestMapping(value = "update/staff/{id}", method = RequestMethod.PATCH)
     @CrossOrigin(origins = {"https://localhost:62812"})
-    Staff updateStaffMemberById(@PathVariable int id, @RequestBody Staff newStaffData){
+    Staff updateStaffMemberById(@PathVariable String id, @RequestBody Staff newStaffData){
         return this.serverService.updateStaffMemberById(id, newStaffData);
     }
 
     @RequestMapping(value = "checkPassword/staff/{id}", method = RequestMethod.GET)
     @CrossOrigin(origins = {"https://localhost:62812"})
-    String checkPassword(@PathVariable int id, @RequestBody String plainPassword){
+    String checkPassword(@PathVariable String id, @RequestBody String plainPassword){
         return this.serverService.checkPassword(id, plainPassword) ? "VALID\n" : "INVALID\n";
     }
 
@@ -42,7 +42,7 @@ public class ServerController {
 
     @RequestMapping(value = "update/student/{id}", method = RequestMethod.PATCH)
     @CrossOrigin(origins = {"https://localhost:62812"})
-    Student updateStudentById(@PathVariable int id, @RequestBody Student newStudentData){
+    Student updateStudentById(@PathVariable String id, @RequestBody Student newStudentData){
         return this.serverService.updateStudentById(id, newStudentData);
     }
 
@@ -66,7 +66,7 @@ public class ServerController {
 
     @RequestMapping(value = "recordAttendance/{index}/{subjectId}/{isExercise}", method = RequestMethod.GET)
     @CrossOrigin(origins = {"https://localhost:62812"})
-    String recordAttendance(@PathVariable int subjectId, @PathVariable String index, @PathVariable boolean isExercise){
+    String recordAttendance(@PathVariable String subjectId, @PathVariable String index, @PathVariable boolean isExercise){
         return this.serverService.recordAttendance(subjectId, index, isExercise);
     }
 
