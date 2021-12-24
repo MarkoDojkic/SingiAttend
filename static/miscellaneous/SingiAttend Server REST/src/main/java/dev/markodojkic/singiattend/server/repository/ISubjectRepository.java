@@ -1,13 +1,20 @@
 package dev.markodojkic.singiattend.server.repository;
 
 import dev.markodojkic.singiattend.server.entity.AttendanceSubobjectInstance;
+import dev.markodojkic.singiattend.server.entity.CourseDataInstance;
 import dev.markodojkic.singiattend.server.entity.Subject;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.mongodb.repository.Aggregation;
+import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
+
+import static org.springframework.data.mongodb.core.aggregation.Aggregation.*;
 
 import java.util.List;
 
-public interface ISubjectRepository extends JpaRepository<Subject, Integer> {
-    @Query(value="SELECT  subject_id AS subjectId, teacher.name_surname AS nameT,  assistant.name_surname AS nameA,  `subject`.title,  `subject`.title_english AS titleEnglish,  `subject`.is_inactive AS isInactive FROM  `subject` LEFT JOIN staff teacher ON  `subject`.professor_id = teacher.staff_id LEFT JOIN staff assistant ON  `subject`.assistant_id = assistant.staff_id WHERE  `subject`.subject_id IN   (SELECT subject_id FROM subject_study   WHERE subject_study.study_id = (SELECT study_id FROM student WHERE `index` = ?1) AND subject_study.`year` = (SELECT `year` FROM student WHERE `index` = ?1))",nativeQuery = true)
+@EnableMongoRepositories
+public interface ISubjectRepository extends MongoRepository<Subject, String> {
+    @Aggregation("{ $match : { 'enroled_students' : { $eq: ?0 } } } }, {$lookup: {from:'Staff',localField:'professor_id',foreignField:'_id',as:'professor'}},{$lookup: {from:'Staff',localField:'assistant_id',foreignField:'_id',as:'assistant'}}])})")
+    List<CourseDataInstance> getCourseData(String index);
+    @Aggregation("{ $lookup: {from:'Staff',localField:'professor_id',foreignField:'_id',as:'professor'}},{$lookup: {from:'Staff',localField:'assistant_id',foreignField:'_id',as:'assistant'}},{$match: {enroled_students: {$eq: ?0}} }")
     List<AttendanceSubobjectInstance> getSubobjectdata(String index);
 }

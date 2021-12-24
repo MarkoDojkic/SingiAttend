@@ -90,6 +90,8 @@
      <generateBGraph>Generiši trakasti grafikon</generateBGraph>
      <generatePGraph>Generiši torta grafikon</generatePGraph>
      <pieChartTitle>Ukupno prisustvo (%) na predavanjima.</pieChartTitle>
+     <englishStudent>Jezik predavanja: Engleski</englishStudent>
+     <serbianStudent>Jezik predavanja: Srpski</serbianStudent>
   </professorPage>
   <assistantPage>
      <exercisesBtn>Vežbe</exercisesBtn>
@@ -159,6 +161,6 @@
      <csvInvalidError>CSV datoteka je nevažeća.</csvInvalidError>
      <csvInvalidUsers>Podaci CSV datoteke su delimično uvezeni. Nevažeći redovi sadrže sledeće adrese e-pošte:</csvInvalidUsers>
      <csvInvalidUser>Nevažeći korisnik</csvInvalidUser>
-     <graphNotGenerated>Nisu pronađene datoteke evidencije prisustva. Grafikon nije moguće generisati.</graphNotGenerated>
+     <graphNotGenerated>Nisu pronađene evidencije prisustva. Grafikon nije moguće generisati.</graphNotGenerated>
   </errors>
 </ISEPS>

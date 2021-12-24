@@ -90,6 +90,8 @@
       <generateBGraph>Generate bar graph</generateBGraph>
       <generatePGraph>Generate pie chart graph</generatePGraph>
       <pieChartTitle>Total attendace (%) on lectures.</pieChartTitle>
+      <englishStudent>Taugh in: English</englishStudent>
+      <serbianStudent>Taugh in: Serbian</serbianStudent>
    </professorPage>
    <assistantPage>
       <exercisesBtn>Exercises</exercisesBtn>
@@ -159,6 +161,6 @@
       <csvInvalidError>CSV file is invalid.</csvInvalidError>
       <csvInvalidUsers>CSV file data partially imported. Invalid rows contain following email addresses:</csvInvalidUsers>
       <csvInvalidUser>Invalid user</csvInvalidUser>
-      <graphNotGenerated>No log files found. Graph could not be generated.</graphNotGenerated>
+      <graphNotGenerated>No info found. Graph could not be generated.</graphNotGenerated>
    </errors>
 </ISEPS>

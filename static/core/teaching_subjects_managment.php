@@ -1,45 +1,60 @@
 <?php
-
     session_start();
     require "../../constants.php";
-    require_once "database_connection.php";
 
     $xml = @simplexml_load_file(DIR_ROOT . DIR_LANGUAGES . "/{$_SESSION["language"]}.xml")  or die(file_get_contents(DIR_ROOT . "/error404.html"));
 
     foreach(array_keys($_POST) as $key){
-       
         switch(explode('_',$key)[0]){
-            case 'details': showDetails(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'startSY': startNewSubjectYear(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'endSY': endCurrentSubjectYear(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'edit': editSubject(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'viewStudents': viewAttendingStudents(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'lectures': viewLectures(explode('_',$key)[1],$xml,$conn); break 2;
-            case 'startNL': startNewLecture(explode('_',$key)[1],$xml,$conn); break 2;
+            case 'details': showDetails(explode('_',$key)[1],$xml); break 2;
+            case 'startSY': startNewSubjectYear(explode('_',$key)[1],$xml); break 2;
+            case 'endSY': endCurrentSubjectYear(explode('_',$key)[1],$xml); break 2;
+            case 'edit': editSubject(explode('_',$key)[1],$xml); break 2;
+            case 'viewStudents': viewAttendingStudents(explode('_',$key)[1],$xml); break 2;
+            case 'lectures': viewLectures(explode('_',$key)[1],$xml); break 2;
+            case 'startNL': startNewLecture(explode('_',$key)[1],$xml); break 2;
             case 'cancel': exit;
             default: continue 2;
         }
     }
 
-    function showDetails($id,$xml,$conn){
-        $query = sprintf("SELECT title, title_english, assistant_id FROM `subject`
-        WHERE subject_id = '%s';", mysqli_real_escape_string($conn,$id));
+    function showDetails($id,$xml){
+        $url = "http://127.0.0.1:62812/api/getSubject/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        $data = $conn->query($query)->fetch_assoc();
+        $data = json_decode(file_get_contents($url, false, $context), true);
+
         $assistants = "";
-        $assistants_data = $conn->query("SELECT name_surname, staff_id FROM staff WHERE role = 'assistant';");
-        
-        if($data["assistant_id"] === null) $assistants .= "<option value='' selected>-</option>";
+
+        $url = "http://127.0.0.1:62812/api/getAllAssistants";
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
+
+        $assistants_data = json_decode(file_get_contents($url, false, $context), true);
+    
+        if(sizeof($data["assistant"]) === 0) $assistants .= "<option value='' selected>-</option>";
         else $assistants .= "<option value=''>-</option>";
 
-        while($assistant = $assistants_data->fetch_assoc()){
-            if($assistant["staff_id"] === $data["assistant_id"])
+        
+        foreach($assistants_data as $assistant){
+            if($assistant["id"] === $data["assistantId"])
                 $assistants .= "
-                    <option value='{$assistant["staff_id"]}' selected>{$assistant["name_surname"]}</option>
+                    <option value='{$assistant["id"]}' selected>{$assistant["name_surname"]}</option>
                 ";
             else 
                 $assistants .= "
-                    <option value='{$assistant["staff_id"]}'>{$assistant["name_surname"]}</option>
+                    <option value='{$assistant["id"]}'>{$assistant["name_surname"]}</option>
                 ";
         }
         
@@ -79,114 +94,128 @@
         </form>";
     }
 
-    function startNewSubjectYear($id,$xml,$conn){
-        try {
+    function startNewSubjectYear($id,$xml){
+        $url = "http://127.0.0.1:62812/api/startNewSubjectYear/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-
-            $conn->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
-
-            $query = sprintf("UPDATE subject SET is_inactive = 0 WHERE subject_id = '%s';"
-                            ,mysqli_real_escape_string($conn,$id));
-            
-            $conn->query($query);
-
-            $conn->commit();
-        }
-        catch(Exception $e){
-            $conn->rollback();
-            die($xml->errors->startCSYError[0]);
-        }
+        file_get_contents($url, false, $context);
 
         echo "<script>setTimeout(function(){
             window.top.location.reload();
         }, 1);</script>";
     }
 
-    function endCurrentSubjectYear($id,$xml,$conn){
+    function endCurrentSubjectYear($id,$xml){
+        $url = "http://127.0.0.1:62812/api/endCurrentSubjectYear/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        try {
-            $conn->begin_transaction(MYSQLI_TRANS_START_READ_WRITE);
-
-            $query = sprintf("UPDATE subject SET is_inactive = 1 WHERE subject_id = '%s';"
-                        ,mysqli_real_escape_string($conn,$id));
-
-            $conn->query($query);
-
-            $conn->commit();
-        }
-        catch(Exception $e){
-            $conn->rollback();
-            die($xml->errors->endCSYError[0]);
-        }
+        file_get_contents($url, false, $context);
 
         echo "<script>setTimeout(function(){
             window.top.location.reload();
         }, 1);</script>";
     }
-    
 
-    function editSubject($id,$xml,$conn){
+    function editSubject($id,$xml){
+
+        $post = null;        
+        
         if($_POST['assistant_selection'] === ""){
-            $query = sprintf("UPDATE subject SET assistant_id = null WHERE subject_id = '%s'",mysqli_real_escape_string($conn,$id));
-            $conn->query($query) or die($xml->errors->editSubjectError[0] . "(50001)");
+            $post = array("assistantId"=>"-1");
         }
         else {
-            $query = sprintf("UPDATE subject SET assistant_id = '%s' WHERE subject_id = '%s'",mysqli_real_escape_string($conn,$_POST['assistant_selection']),mysqli_real_escape_string($conn,$id));
-            $conn->query($query) or die($xml->errors->editSubjectError[0] . "(50002)");
+            $post = array("assistantId"=>$_POST['assistant_selection']);
         }
 
         if($_POST["subject_name"] !== ""){ //(preg_match_all("/^[\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z]{1,15}\s([\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z\-]{1,15}\s?){1,3}$/",$_POST["subject_name"]))
-            $query = sprintf("UPDATE subject SET title = '%s' WHERE subject_id = '%s'",mysqli_real_escape_string($conn,$_POST["subject_name"]),mysqli_real_escape_string($conn,$id));
-            $conn->query($query) or die("<i style='color:red;font-size:14px;'> - " . $xml->errors->edit_wrong_sN0[0]. "</i>");
+            $post = array("title"=>$_POST['subject_name']);
         }
         // else
             // echo "<i style='color:red;font-size:14px;'> - " . $xml->errors->edit_wrong_sN0[0] . "</i><br>";
         
         
         if($_POST["subject_nameEng"] !== "" && preg_match_all("/^[A-Z]{1}([a-z]\\s?)+$/",$_POST["subject_nameEng"])){
-            $query = sprintf("UPDATE subject SET title_english = '%s' WHERE subject_id = '%s'",mysqli_real_escape_string($conn,$_POST["subject_nameEng"]),mysqli_real_escape_string($conn,$id));
-            
-            $conn->query($query) or die("<i style='color:red;font-size:14px;'> - " . $xml->errors->edit_wrong_sN1[0]. "</i>");
+            $post = array("title_english"=>$_POST['subject_nameEng']);
         }
         // else 
             // echo "<i style='color:red;font-size:14px;'> - " . $xml->errors->edit_wrong_sN1[0] . "</i>\";
         
+        if($post != null){
+            $url = "http://127.0.0.1:62812/api/update/subject/" . $id;
+
+            $context = stream_context_create(array(
+                "http" => array(
+                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "protocol_version" => 1.1,
+                    'method' => 'PATCH',
+                    'content' => json_encode($post)
+            )));
+
+            $response = file_get_contents($url, false, $context);
+        }
+
         echo "<script>setTimeout(function(){
             window.top.location.reload();
         }, 1);</script>";
     }
 
-    function viewAttendingStudents($id,$xml,$conn){
+    function viewAttendingStudents($id,$xml){
         $alert = "{$xml->assistantPage->viewStudentsText[0]}";
         $localization = $_SESSION["language"] === "english" ? "title_english" : "title";
         
-        $query = sprintf("SELECT DISTINCT student.name_surname, student.index, faculty.{$localization} as faculty, study.{$localization} as study, student.year as year FROM subject_study
-        INNER JOIN study ON subject_study.study_id = study.study_id
-        INNER JOIN student ON subject_study.study_id = student.study_id
-        INNER JOIN faculty ON study.faculty_id = faculty.faculty_id
-        INNER JOIN `subject` ON subject_study.subject_id = subject.subject_id
-        WHERE subject_study.subject_id = '%s' AND subject.is_inactive = '0'",mysqli_real_escape_string($conn,$id));
+        $url = "http://127.0.0.1:62812/api/allStudentBySubjectId/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));    
 
-        $data = $conn->query($query) or die($xml->errors->viewAttendingStudentsError[0]);
+        $data = json_decode(file_get_contents($url, false, $context), true);
 
-        while($attendingStudent = $data->fetch_assoc()){
-            $alert .= "\\n - {$attendingStudent["name_surname"]} ({$attendingStudent["index"]}) - {$attendingStudent["faculty"]} ({$attendingStudent["study"]})";
+        foreach($data as $attendingStudent){
+            $lang = $attendingStudent["study"]["taught_in"] === "engleski" ? $xml->professorPage->englishStudent[0] : $xml->professorPage->serbianStudent[0];
+            $study = $_SESSION["language"] === "english" ? 
+            $attendingStudent["study"][0]["faculty_title_english"] . ", " . $attendingStudent["study"][0]["title_english"] . ", " . $lang:
+            $attendingStudent["study"][0]["faculty_title"] . ", " . $attendingStudent["study"][0]["title"] . ", " . $lang;
+
+            $alert .= "\\n - {$attendingStudent["name_surname"]} ({$attendingStudent["index"]}) - {$attendingStudent["faculty"]} ({$study})";
         }
 
         if(!strpos($alert,'-')) $alert = $xml->assistantPage->schoolYearOver[0];
         //returns 1 (true) if - does not exist in the string (i.e. in the case if there are no students or if the subject is inactive - subject.is_inactive = '1'
         
         echo "<script>alert('{$alert}');</script>";
-        showDetails($id,$xml,$conn);
+        showDetails($id,$xml);
     }
     
-    function viewLectures($id,$xml,$conn){
+    function viewLectures($id,$xml){
 
-        $query = sprintf("SELECT is_inactive FROM subject WHERE subject_id = '%s'",mysqli_real_escape_string($conn,$id));
+        $url = "http://127.0.0.1:62812/api/subjectIsInactiveById/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        $data = $conn->query($query)->fetch_assoc() or die("<i style='color:red;font-size:14px;'> - " . $xml->errors->viewLEError[0]. "</i>");;
+        $data = file_get_contents($url, false, $context);
 
-        if($data['is_inactive']) 
+        if($data === 'true') 
             die ("
             <script>
             alert('{$xml->assistantPage->schoolYearOver[0]}');
@@ -197,13 +226,19 @@
 
         $lectures = "<option value=''>-</option>";
 
-        $query = sprintf("SELECT lecture_id FROM lecture WHERE log_file_name LIKE '%s\_%%' ORDER BY lecture_id"
-                    ,mysqli_real_escape_string($conn,$id));
+        $url = "http://127.0.0.1:62812/api/getAllLectures/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
 
-        $data = $conn->query($query) or die("<i style='color:red;font-size:14px;'> - " . $xml->errors->viewLEError[0]. "</i>");
+        $data = json_decode(file_get_contents($url, false, $context), true);
 
-        while($lecture = $data->fetch_assoc()){
-            $lectures .= "<option value='{$lecture['lecture_id']}'>ID: {$lecture['lecture_id']}</option>";
+        foreach($data as $lecture){
+            $lectures .= "<option value='{$lecture['id']}'>ID: {$lecture['id']}</option>";
         }
 
         $dateLocal = $_SESSION["language"] === "english" ? date('Y-m-d') : date("d.m.Y");
@@ -269,63 +304,47 @@
         ";
     }
 
-    function startNewLecture($id,$xml,$conn){
+    function startNewLecture($id,$xml){
+
+        $url = "http://127.0.0.1:62812/api/getLastLecture/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'GET'
+        )));
+
+        $lastLectureData = json_decode(file_get_contents($url, false, $context), true);
+
+        $lengthFromLastLecture = date_diff(date_create('2015-01-26 13:15:00'),date_create('2015-01-26 13:15:00'));
+        //defaultly set so it'll have invert parametar 0 to pass if test below
+        
+        if($lastLectureData != null)
+            $lengthFromLastLecture = date_diff(new DateTime($lastLectureData["ended_at"]),new DateTime($_POST['start_time'])); 
 
         $lectureLength = date_diff(new DateTime($_POST['start_time']),new DateTime($_POST['end_time']));
 
-        $query = sprintf("SELECT log_file_name, end_time FROM lecture WHERE log_file_name LIKE '%s_%%' 
-                                        ORDER BY end_time DESC LIMIT 1", mysqli_real_escape_string($conn,$id));
-
-        $lastLectureData = $conn->query($query)->fetch_assoc() or null;
-        $lengthFromLastLecture = date_diff(new DateTime($_POST['start_time']),new DateTime($_POST['start_time']));
-        //defaultly set so it'll have invert parametar 0 to pass if test below
-
-        $var = explode("^",file_get_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/" . "lectureLogs/" 
-        . $lastLectureData["log_file_name"])); //example of var data [1.2020-12-01,11:30$12:45]
-
-        $dateTime = explode(".",$var[0])[1] . explode("$",$var[1])[1];
-        $dateTime = explode("\n", $dateTime)[0];
-        if($lastLectureData != null)
-            $lengthFromLastLecture = date_diff(new DateTime($dateTime),new DateTime($_POST['start_time'])); 
-
         if($lectureLength->i < 45 && $lectureLength->h == 0 // incorrect: 12:00->12:44;12:00->11:59;12:00->18:01
-            || $lectureLength->invert === 1 || $lectureLength->h > 6 || $lengthFromLastLecture->invert === 1) {
+            || $lectureLength->invert === 1 || $lectureLength->h > 6 || $lectureLength->h == 6 && $lectureLength->i != 0 || $lengthFromLastLecture->invert === 1) {
                 echo "<script>alert('{$xml->errors->LELengthInvalid[0]}');</script>";
-                viewLectures($id,$xml,$conn);
+                viewLectures($id,$xml);
                 exit;
             }
+
+        $url = "http://127.0.0.1:62812/api/insert/lecture/" . $id . "/" . $_POST['start_time'] . "/" . $_POST['end_time'];
+            
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'PUT'
+        )));
+
+        file_get_contents($url, false, $context);
         
-        file_put_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/" . "lectureLogs/" 
-            . $lastLectureData["log_file_name"], "----------------------------------------", FILE_APPEND | LOCK_EX);
-
-        do {
-            $log_file_name = $id . "_" . random_int($id, 100*$id) . '.log'; //generate unique log filename (up to 100 lectures per subject)
-        } while(file_exists(DIR_ROOT . DIR_MISCELLANEOUS . "/lectureLogs/" . $log_file_name));
-
-        $query = sprintf("INSERT INTO lecture (log_file_name,start_time,end_time) VALUES ('%s','%s','%s')",
-                        mysqli_real_escape_string($conn,$log_file_name),
-                        mysqli_real_escape_string($conn,$_POST['start_time']),
-                        mysqli_real_escape_string($conn,$_POST['end_time']));
-
-        $conn->query($query) or die("<script>alert('{$xml->errors->startLEError[0]}');</script>");
-
-        $query = sprintf("SELECT count(lecture_id) as count FROM lecture WHERE log_file_name LIKE '%s_%%'"
-                    ,mysqli_real_escape_string($conn,$id));
-
-        $count = $conn->query($query)->fetch_assoc()["count"];
-
-        $data = $count . "." . date("Y-m-d") . '^' . $_POST['start_time'] . '$' . $_POST['end_time'] . "\n";
-
-        file_put_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/lectureLogs/" . $log_file_name, $data, LOCK_EX);
-
-        $query = sprintf("UPDATE `subject` SET last_lecture_at = '%s' WHERE subject_id = '%s';", 
-                mysqli_real_escape_string($conn, date("Y-m-d") . " " . $_POST['start_time']),
-                mysqli_real_escape_string($conn, $id));
-
-        $conn->query($query);
-
         echo("<script>alert('{$xml->professorPage->startNewLectureSuccessfull[0]}');</script>");
 
-        viewLectures($id,$xml,$conn);
+        viewLectures($id,$xml);
     }
 ?>
