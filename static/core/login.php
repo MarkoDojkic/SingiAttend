@@ -9,13 +9,10 @@
     $id = trim($_POST["id"]);
     $password = trim($_POST["password"]);
 
-    $id_pattern = "/^[0-9]{4,6}$/";
     $password_pattern = "/^(?=.*[a-z])(?=.*\d)[a-z\d]{8,}$/";
     //lowercase and digit (length of min 8)
 
-    if (!preg_match($id_pattern, $id)) $errors[] = "wrong_id";
-    
-    if (!preg_match($password_pattern, $password)) $errors[] = "wrong_pass";
+    //if (!preg_match($password_pattern, $password)) $errors[] = "wrong_pass";
     
     if ($_POST["captcha"] !== $_SESSION['captcha_text']) $errors[] = "invalid_captcha";
 
@@ -26,12 +23,12 @@
     }
     else {        
 
-        $query = sprintf("SELECT name_surname, `role` FROM staff WHERE staff_id = %s;", mysqli_real_escape_string($conn,$id));
+        /*$query = sprintf("SELECT name_surname, `role` FROM staff WHERE staff_id = %s;", mysqli_real_escape_string($conn,$id));
 
         $data = ($conn->query($query))->fetch_assoc();
         $nameSurname = $data["name_surname"];
-        $loginAs = $data['role'];
-
+        $loginAs = $data['role'];*/
+//Use getStaffMemberById
         if($password === null) $errors[] = "userNotFound";
         else {
             $url = "http://127.0.0.1:62812/api/checkPassword/staff/" . $id;
@@ -45,7 +42,12 @@
             )));
 
             $response = file_get_contents($url, false, $context);
-            if(strcmp($response, "INVALID") === 1) $errors[] = "wrong_pass";
+            
+            if(strcmp($response, "INVALID") === 0) $errors[] = "wrong_pass";
+            else {
+                $nameSurname = explode(':', $response)[0];
+                $loginAs = explode(':', $response)[1];
+            }
         }
 
         if(sizeof($errors) !== 0){
@@ -58,7 +60,7 @@
             $_SESSION['loggedInUser'] = $nameSurname;
             $_SESSION['loggedInAs'] = $loginAs;
             $_SESSION['loggedInId'] = $id;
-            $page_redirect = $loginAs === "assistant" ? "teaching_exercises" : "teaching_subject_management";
+            $page_redirect = strcmp($loginAs, "assistant") === 0 ? "teaching_exercises" : "teaching_subject_management";
             echo "<script>window.top.location.href = '/index.php?language={$_SESSION['language']}&page={$page_redirect}';</script>";
         }
     }
