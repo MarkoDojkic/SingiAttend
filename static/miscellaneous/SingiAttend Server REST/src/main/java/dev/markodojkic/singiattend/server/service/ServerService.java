@@ -3,6 +3,7 @@ package dev.markodojkic.singiattend.server.service;
 import dev.markodojkic.singiattend.server.entity.*;
 import dev.markodojkic.singiattend.server.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.*;
@@ -10,10 +11,10 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.Optional;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ServerService implements IServerService {
@@ -87,58 +88,59 @@ public class ServerService implements IServerService {
     }
 
     @Override
-    public List<CourseDataInstance> getCourseData(String index) {
+    public List<CourseDataInstance> getCourseData(String index) throws ParseException {
         final String index_ = index.substring(0, index.length() - 6) + "/" + index.substring(index.length() - 6);
-        return this.studyRepository.getCourseData(index_);
+        List<CourseDataInstance> output = new ArrayList<>();
+
+        for(CourseDataLecture lecture: this.subjectRepository.getCourseDataLectures(this.studentRepository.getByIndex(index_).getId(), (new Date().getTime() - (1000 * 60 * 45))).getMappedResults()){
+            String time = (lecture.getLast_lecture_at().split("T")[1]).split("\\.")[0];
+            SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
+            Date d = df.parse(time);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(d);
+            cal.add(Calendar.MINUTE, 45);
+            String newTime = df.format(cal.getTime());
+            output.add(new CourseDataInstance(lecture.getId(),lecture.getProfessor().get(0).getName_surname(),lecture.getTitle() + "-предавања", lecture.getTitle_english() + "-lecture", time, newTime));
+        }
+
+        for(CourseDataLecture exercise: this.subjectRepository.getCourseDataExercises(this.studentRepository.getByIndex(index_).getId(), (new Date().getTime() - (1000 * 60 * 45))).getMappedResults()){
+            String ns = "";
+            if(exercise.getAssistant().size() == 0) ns = exercise.getProfessor().get(0).getName_surname();
+            else ns = exercise.getAssistant().get(0).getName_surname();
+            String time = (exercise.getLast_lecture_at().split("T")[1]).split("\\.")[0];
+            SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss");
+            Date d = df.parse(time);
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(d);
+            cal.add(Calendar.MINUTE, 45);
+            String newTime = df.format(cal.getTime());
+            output.add(new CourseDataInstance(exercise.getId(),ns,exercise.getTitle() + "-вежбе", exercise.getTitle_english() + "-practice", time, newTime));
+        }
+
+        return output;
     }
 
     @Override
     public String recordAttendance(String subjectId, String index, boolean isExercise) {
         final String index_ = index.substring(0, index.length() - 6) + "/" + index.substring(index.length() - 6);
 
-        if(isExercise){
+        if(!isExercise){
             Lecture lecture = this.lectureRepository.getLast(subjectId);
-            lecture.getAttended_students().add(this.studentRepository.getByIndex(index_).getId());
+            var attendedStudents = lecture.getAttended_students();
+            if(attendedStudents.contains(this.studentRepository.getByIndex(index_).getId())) return "ALERADY RECORDED ATTENDANCE";
+            attendedStudents.add(this.studentRepository.getByIndex(index_).getId());
+            lecture.setAttended_students(attendedStudents);
             this.lectureRepository.save(lecture);
-            return "SUCCESS";
+            return "SUCCESSFULLY RECORDED ATTENDANCE";
         } else {
             Exercise exercise = this.exerciseRepository.getLast(subjectId);
-            exercise.getAttended_students().add(this.studentRepository.getByIndex(index_).getId());
-            return "SUCCESS";
+            var attendedStudents = exercise.getAttended_students();
+            if(attendedStudents.contains(this.studentRepository.getByIndex(index_).getId())) return "ALERADY RECORDED ATTENDANCE";
+            attendedStudents.add(this.studentRepository.getByIndex(index_).getId());
+            exercise.setAttended_students(attendedStudents);
+            this.exerciseRepository.save(exercise);
+            return "SUCCESSFULLY RECORDED ATTENDANCE";
         }
-/*
-        String baseDir = "/Volumes/Podaci/Web/XAMPP/SingiAttend/static/miscellaneous/" + (isExercise ? "exercise" : "lecture") + "Logs";
-        DirectoryScanner directoryScanner = new DirectoryScanner();
-        directoryScanner.setBasedir(baseDir);
-        directoryScanner.setIncludes(new String[]{subjectId + "_*.log"});
-        directoryScanner.setCaseSensitive(false);
-        directoryScanner.scan();
-        String[] logFiles = directoryScanner.getIncludedFiles();
-        String data = this.getNameSurnameStudent(index).replace(" ", "_") + " " + index_ + " ";
-
-        for (String logFileString:logFiles) {
-            try {
-                File logFile = new File(baseDir + "/" + logFileString);
-                Scanner scanner = new Scanner(logFile); 
-                Boolean isWrongFile = false;
-                while (scanner.hasNextLine()){
-                    String nextLine = scanner.nextLine();
-                    if(nextLine.contains(data)) return "0*" + nextLine.split(data)[1]; //Already recorded attendance, send record time
-                    else if(nextLine.equals("----------------------------------------")) isWrongFile = true;
-                }
-                if(!isWrongFile){
-                    String recordTime = "";
-                    recordTime += LocalDateTime.now().getHour() < 10 ? "0" + LocalDateTime.now().getHour() + ":" : LocalDateTime.now().getHour() + ":";
-                    recordTime += LocalDateTime.now().getMinute() < 10 ? "0" + LocalDateTime.now().getMinute() : LocalDateTime.now().getMinute();
-                    FileWriter fileWriter = new FileWriter(logFile, true);
-                    fileWriter.append(data + recordTime + "\n");
-                    fileWriter.flush();
-                    fileWriter.close();
-                    return "1*"+recordTime; //Recorded attendance at
-                }
-            } catch (IOException e) { }
-        }
-        */
     }
 
     @Override
@@ -150,8 +152,13 @@ public class ServerService implements IServerService {
     public List<AttendanceDataInstance> getAttendanceData(String index) {
         List<AttendanceDataInstance> output = new ArrayList<>();
         final String index_ = index.substring(0, index.length() - 6) + "/" + index.substring(index.length() - 6);
-        List<AttendanceSubobjectInstance> attendanceSubobjectInstances = this.subjectRepository.getSubobjectdata(index_);
+
+        AggregationResults<AttendanceSubobjectInstance> attendanceSubobjectInstances = this.subjectRepository.getSubobjectdata(this.studentRepository.getByIndex(index_).getId());
         for (AttendanceSubobjectInstance attendanceSubobjectInstance:attendanceSubobjectInstances) {
+            attendanceSubobjectInstance.setNameT(attendanceSubobjectInstance.getProfessor().get(0).getName_surname());
+            attendanceSubobjectInstance.setNameA(attendanceSubobjectInstance.getAssistant().size() == 0 ? "" : attendanceSubobjectInstance.getAssistant().get(0).getName_surname());
+            attendanceSubobjectInstance.setProfessor(null);
+            attendanceSubobjectInstance.setAssistant(null);
             int al = this.getAttendedLectures(attendanceSubobjectInstance.getSubjectId(), index_);
             int ap = this.getAttendedPractices(attendanceSubobjectInstance.getSubjectId(), index_);
             int tl = this.getTotalLectures(attendanceSubobjectInstance.getSubjectId());
@@ -161,20 +168,228 @@ public class ServerService implements IServerService {
         return output;
     }
 
+    @Override
+    public List<Subject> getSubjectsByProfessorId(String professorId) {
+        return this.getAllSubjects().stream().filter(s -> s.getProfessorId().equals(professorId)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Subject> getSubjectsByAssistantId(String assistantId) {
+        return this.getAllSubjects().stream().filter(s -> s.getAssistantId() != null && s.getAssistantId().equals(assistantId)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Staff> getAllStaff() {
+        return this.staffRepository.findAll();
+    }
+
+    @Override
+    public List<Study> getAllStudies() {
+        return this.studyRepository.findAll();
+    }
+
+    @Override
+    public List<Student> getAllStudents() {
+        return this.studentRepository.findAll();
+    }
+
+    @Override
+    public List<Subject> getAllSubjects() {
+        return this.subjectRepository.findAllAggregation().getMappedResults();
+    }
+
+    @Override
+    public Subject addNewSubject(Subject newSubject) {
+        //int is added as NumberInt, and _class property is added for all classes (can be ignored)
+        return this.subjectRepository.save(newSubject);
+    }
+
+    @Override
+    public int totalStudentsBySubjectId(String subjectId) {
+        return this.subjectRepository.findById(subjectId).isPresent() ? this.subjectRepository.findById(subjectId).get().getEnroled_students().size() : -1;
+    }
+
+    @Override
+    public List<Student> getAllStudentsBySY(String studyId, int year) {
+        return this.getAllStudents().stream().filter(s -> s.getStudyId().equals(studyId) && s.getYear().equals(String.valueOf(year))).collect(Collectors.toList());
+    }
+
+    @Override
+    public Subject getSubjectById(String subjectId) {
+        List<Subject> matchingSubjects = this.getAllSubjects().stream().filter(s -> s.getId().equals(subjectId)).collect(Collectors.toList());
+        return matchingSubjects.isEmpty() ? null : matchingSubjects.get(0);
+    }
+
+    @Override
+    public Staff getStaffMemberById(String id) {
+        List<Staff> matchingStaff = this.getAllStaff().stream().filter(s -> s.getId().equals(id)).collect(Collectors.toList());
+        return matchingStaff.isEmpty() ? null : matchingStaff.get(0);
+    }
+
+    @Override
+    public boolean checkIfStaffHasSubjectAssigned(String id, boolean isAssistant) {
+        if(isAssistant) return this.getSubjectsByAssistantId(id).isEmpty();
+        else return this.getSubjectsByProfessorId(id).isEmpty();
+    }
+
+    @Override
+    public void deleteStaff(String staffId, boolean isAssistant) {
+        if(isAssistant){
+            this.getSubjectsByAssistantId(staffId).forEach(s -> {
+                s.setAssistantId("-1");
+                this.updateSubjectBySubjectId(s, s.getId());
+            });
+        } else {
+            this.getSubjectsByProfessorId(staffId).forEach(s -> {
+                this.subjectRepository.deleteById(s.getId());
+            });
+        }
+
+        this.staffRepository.deleteById(staffId);
+    }
+
+    @Override
+    public void deleteStudent(String studentId) {
+        this.studentRepository.deleteById(studentId);
+    }
+
+    @Override
+    public List<Student> allStudentBySubjectId(String subjectId) {
+        List<Student> output = new ArrayList<>();
+        for(String st: this.getSubjectById(subjectId).getEnroled_students()){
+            output.add(this.studentRepository.find(st));
+        }
+        return output;
+    }
+
+    @Override
+    public boolean subjectIsInactiveById(String subjectId) {
+        return this.getSubjectById(subjectId).getIsInactive().equals("1");
+    }
+
+    @Override
+    public List<Exercise> allExercisesBySubjectId(String subjectId) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy'T'HH:mm:ss'+0000'");
+        return this.exerciseRepository.findAll().stream().filter(e -> e.getSubject_id().equals(subjectId)).sorted((l1, l2) -> {
+            try {
+                return sdf.parse(l1.getEnded_at().split("T")[0]).after(sdf.parse(l2.getEnded_at().split("T")[0])) ? 1 : -1;
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            return 0;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public Exercise getLastExercise(String subjectId) {
+        return this.exerciseRepository.getLast(subjectId);
+    }
+
+    @Override
+    public void startNewLecture(String subjectId, String begin, String end) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+        begin = sdf.format(new Date()) + "T" + begin + ":00+0000";
+        end = sdf.format(new Date()) + "T" + end + ":00+0000";
+        this.lectureRepository.save(new Lecture(subjectId, begin, end, new ArrayList<>()));
+        Subject subject = this.subjectRepository.findById(subjectId).get();
+        subject.setLastLectureAt(begin);
+        this.updateSubjectBySubjectId(subject, subjectId);
+    }
+
+    @Override
+    public void startNewExercise(String subjectId, String begin, String end) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy");
+        begin = sdf.format(new Date()) + "T" + begin + ":00+0000";
+        end = sdf.format(new Date()) + "T" + end + ":00+0000";
+        this.exerciseRepository.save(new Exercise(subjectId, begin, end, new ArrayList<>()));
+        Subject subject = this.subjectRepository.findById(subjectId).get();
+        subject.setLastExerciseAt(begin);
+        this.updateSubjectBySubjectId(subject, subjectId);
+    }
+
+    @Override
+    public List<Staff> getAllAsistants() {
+        return this.getAllStaff().stream().filter(s -> s.getRole().equals("assistant")).collect(Collectors.toList());
+    }
+
+    @Override
+    public void startNewSubjectYear(String subjectId) {
+        this.lectureRepository.deleteAll(this.lectureRepository.findAll().stream().filter(l -> l.getSubject_id().equals(subjectId)).collect(Collectors.toList()));
+        this.exerciseRepository.deleteAll(this.exerciseRepository.findAll().stream().filter(e -> e.getSubject_id().equals(subjectId)).collect(Collectors.toList()));
+        Subject subject = this.getSubjectById(subjectId);
+        subject.setIsInactive("0");
+        this.updateSubjectBySubjectId(subject, subjectId);
+    }
+
+    @Override
+    public void endCurrentSubjectYear(String subjectId) {
+        Subject subject = this.getSubjectById(subjectId);
+        subject.setIsInactive("1");
+        this.updateSubjectBySubjectId(subject, subjectId);
+    }
+
+    @Override
+    public Subject updateSubjectBySubjectId(Subject newSubjectData, String subjectId) {
+        Subject subject = this.getSubjectById(subjectId);
+        if(newSubjectData.getTitle() != null) subject.setTitle(newSubjectData.getTitle());
+        if(newSubjectData.getTitle_english() != null) subject.setTitle_english(newSubjectData.getTitle_english());
+        if(newSubjectData.getProfessorId() != null) subject.setProfessorId(newSubjectData.getProfessorId());
+        if(newSubjectData.getAssistantId() != null) subject.setAssistantId(newSubjectData.getAssistantId().equals("-1") ? null : newSubjectData.getAssistantId());
+        if(newSubjectData.getLastLectureAt() != null) subject.setLastLectureAt(newSubjectData.getLastLectureAt());
+        if(newSubjectData.getLastExerciseAt() != null) subject.setLastExerciseAt(newSubjectData.getLastExerciseAt());
+        if(newSubjectData.getEnroled_students() != null) subject.setTitle(newSubjectData.getTitle());
+        if(newSubjectData.getIsInactive() != null) subject.setIsInactive(newSubjectData.getIsInactive());
+
+        return this.subjectRepository.save(subject);
+    }
+
+    @Override
+    public List<Lecture> allLecturesBySubjectId(String subjectId) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd.MM.yyyy'T'HH:mm:ss'+0000'"); //Example of data: 28.11.2021T02:29:52+0000
+        return this.lectureRepository.findAll().stream().filter(l -> l.getSubject_id().equals(subjectId)).sorted((l1, l2) -> {
+            try {
+                return sdf.parse(l1.getEnded_at()).after(sdf.parse(l2.getEnded_at())) ? 1 : -1;
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            return 0;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public Lecture getLastLecture(String subjectId) {
+        return this.lectureRepository.getLast(subjectId);
+    }
+
+    @Override
+    public String getStaffNameAndRole(String staffId) {
+        return this.getStaffMemberById(staffId).getName_surname() + ":" + this.getStaffMemberById(staffId).getRole();
+    }
+
+    @Override
+    public Lecture getLecture(String lectureId) {
+        return this.lectureRepository.findById(lectureId).get();
+    }
+
+    @Override
+    public Exercise getExercise(String exerciseId) {
+        return this.exerciseRepository.findById(exerciseId).get();
+    }
+
     private int getTotalPractices(String subjectId) {
-        return this.exerciseRepository.getAllBySubject(subjectId).size();
+        return this.exerciseRepository.getAllBySubject(subjectId);
     }
 
     private int getTotalLectures(String subjectId) {
-        return this.lectureRepository.getAllBySubject(subjectId).size();
+        return this.lectureRepository.getAllBySubject(subjectId);
     }
 
     private int getAttendedPractices(String subjectId, String index) {
-        return this.exerciseRepository.getAllAttended(subjectId, this.studentRepository.getByIndex(index).getId()).size();
+        return this.exerciseRepository.getAllAttended(subjectId, this.studentRepository.getByIndex(index).getId());
     }
 
     private int getAttendedLectures(String subjectId, String index) {
-        return this.lectureRepository.getAllAttended(subjectId, this.studentRepository.getByIndex(index).getId()).size();
+        return this.lectureRepository.getAllAttended(subjectId, this.studentRepository.getByIndex(index).getId());
     }
 
     private String encryptPassword(String plain) {
