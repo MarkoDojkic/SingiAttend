@@ -15,7 +15,7 @@ public class Study {
     private String title;
     @Field("title_english")
     private String title_english;
-    @Field("faculty.title_english")
+    @Field("faculty.title")
     private String faculty_title;
     @Field("faculty.title_english")
     private String faculty_title_english;

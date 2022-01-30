@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 
 @Data
 @Document(collection = "Students")
@@ -23,4 +24,6 @@ public class Student {
     private String studyId;
     @Field("year")
     private String year;
+    @Field("study")
+    private ArrayList<Study> study;
 }
