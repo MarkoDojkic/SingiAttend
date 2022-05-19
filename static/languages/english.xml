@@ -125,14 +125,14 @@
       <csvAllSuccessfull>All CSV file data imported successfully.</csvAllSuccessfull>
    </registrationPage>
    <footer>
-      <copyright>© 2020 Marko Dojkić (2018/201682)</copyright>
+      <copyright>© 2020-2022 Marko Dojkić (2018/201682)</copyright>
       <language1>English</language1>
       <language2>Serbian (cyrilic)</language2>
       <language3>Serbian (latin)</language3>
    </footer>
    <errors>
       <wrong_nS>Input format for "Name and surname" field is invalid (correct example: John Smith).</wrong_nS>
-      <wrong_pass>Input format for "Password" field or password itself is invalid. Password must include at least one uppercase, one lowercase, and one number.</wrong_pass>
+      <wrong_pass>Input format for "Password" field or password itself is invalid.</wrong_pass>
       <wrong_email>Input format for "University Email" field is invalid. Please enter valid university email (ending with: @singidunum.ac.rs).</wrong_email>
       <missmatched_pass>"Password" and "Repeat password" doesn't match.</missmatched_pass>
       <notSelected_registerAs>You haven't selected whether you wanna register as Professor or Assistant.</notSelected_registerAs>
