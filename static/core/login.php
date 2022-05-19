@@ -9,10 +9,9 @@
     $id = trim($_POST["id"]);
     $password = trim($_POST["password"]);
 
-    $password_pattern = "/^(?=.*[a-z])(?=.*\d)[a-z\d]{8,}$/";
-    //lowercase and digit (length of min 8)
-
-    //if (!preg_match($password_pattern, $password)) $errors[] = "wrong_pass";
+    $password_pattern = "/^[a-z]+[0-9]+$/";
+    
+    if (!preg_match($password_pattern, $password)) $errors[] = "wrong_pass";
     
     if ($_POST["captcha"] !== $_SESSION['captcha_text']) $errors[] = "invalid_captcha";
 
@@ -41,9 +40,9 @@
                     'content' => $password
             )));
 
-            $response = file_get_contents($url, false, $context);
+            $response = trim(file_get_contents($url, false, $context));
             
-            if(strcmp($response, "INVALID") === 0) $errors[] = "wrong_pass";
+            if(strcmp($response, "INVALID") == 0) $errors[] = "wrong_pass";
             else {
                 $nameSurname = explode(':', $response)[0];
                 $loginAs = explode(':', $response)[1];
