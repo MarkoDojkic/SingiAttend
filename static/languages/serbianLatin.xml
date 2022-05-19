@@ -125,14 +125,14 @@
      <csvAllSuccessfull>Svi podaci CSV datoteke su uspešno uvezeni.</csvAllSuccessfull>
   </registrationPage>
   <footer>
-     <copyright>© 2020 Marko Dojkić (2018/201682)</copyright>
+     <copyright>© 2020-2022 Marko Dojkić (2018/201682)</copyright>
      <language1>Engleski</language1>
      <language2>Srpski (ćirilica)</language2>
      <language3>Srpski (latinica)</language3>
   </footer>
   <errors>
      <wrong_nS>Format unosa za polje „Ime i prezime“ je nevažeći (ispravan primer: Marko Marković).</wrong_nS>
-     <wrong_pass>Format unosa za polje „Lozinka“ ili sama lozinka je nevažeća. Lozinka mora sadržati najmanje jedno veliko, jedno malo slovo i jedan broj.</wrong_pass>
+     <wrong_pass>Format unosa za polje „Lozinka“ ili sama lozinka je nevažeća.</wrong_pass>
      <wrong_email>Format unosa za polje „Univerzitetska e-pošta“ je nevažeći. Unesite važeću univerzitetsku e-adresu (koja se završava sa: @singidunum.ac.rs).</wrong_email>
      <missmatched_pass>"Lozinka" i "Ponovi lozinku" se ne podudaraju.</missmatched_pass>
      <notSelected_registerAs>Niste izabrali da li želite da se registrujete kao profesor ili asistent.</notSelected_registerAs>

@@ -139,19 +139,18 @@
             $post = array("assistantId"=>$_POST['assistant_selection']);
         }
 
-        if($_POST["subject_name"] !== ""){ //(preg_match_all("/^[\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z]{1,15}\s([\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z\-]{1,15}\s?){1,3}$/",$_POST["subject_name"]))
+        if($_POST["subject_name"] !== ""){ //&& preg_match_all("/^[\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z]{1,15}\s([\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z\-]{1,15}\s?){1,3}$/",$_POST["subject_name"]))
             $post = array("title"=>$_POST['subject_name']);
         }
         // else
             // echo "<i style='color:red;font-size:14px;'> - " . $xml->errors->edit_wrong_sN0[0] . "</i><br>";
         
         
-        if($_POST["subject_nameEng"] !== "" && preg_match_all("/^[A-Z]{1}([a-z]\\s?)+$/",$_POST["subject_nameEng"])){
+        if($_POST["subject_nameEng"] !== ""){ //&& preg_match_all("/^[A-Z]{1}([a-z]\\s?)+$/",$_POST["subject_nameEng"])){
             $post = array("title_english"=>$_POST['subject_nameEng']);
         }
         // else 
             // echo "<i style='color:red;font-size:14px;'> - " . $xml->errors->edit_wrong_sN1[0] . "</i>\";
-        
         if($post != null){
             $url = "http://127.0.0.1:62812/api/update/subject/" . $id;
 
@@ -317,11 +316,11 @@
 
         $lastLectureData = json_decode(file_get_contents($url, false, $context), true);
 
-        $lengthFromLastLecture = date_diff(date_create('2015-01-26 13:15:00'),date_create('2015-01-26 13:15:00'));
+        //$lengthFromLastLecture = date_diff(date_create('2015-01-26 13:15:00'),date_create('2015-01-26 13:15:00'));
         //defaultly set so it'll have invert parametar 0 to pass if test below
         
         if($lastLectureData != null)
-            $lengthFromLastLecture = date_diff(new DateTime($lastLectureData["ended_at"]),new DateTime($_POST['start_time'])); 
+            $lengthFromLastLecture = date_diff(new DateTime($lastLectureData["ended_at"]),new DateTime($_POST['start_time']));
 
         $lectureLength = date_diff(new DateTime($_POST['start_time']),new DateTime($_POST['end_time']));
 
