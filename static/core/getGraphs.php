@@ -9,11 +9,11 @@
     $attendancesData = "";
     $datesData = "[";
 
-    $url = "http://127.0.0.1:62812/api/totalStudents/" . $_POST["subjectSelection"];
+    $url = "http://" . SERVER_URL . SERVER_PORT . "/api/totalStudents/" . $_POST["subjectSelection"];
                 
     $context = stream_context_create(array(
         "http" => array(
-            "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+            "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
             "protocol_version" => 1.1,
             'method' => 'GET'
     )));
@@ -26,11 +26,11 @@
     $suffix = strcmp($_SESSION["loggedInAs"], "professor") === 0 ? "Lectures" : "Exercises";
 
     
-    $url = "http://127.0.0.1:62812/api/getAll" . $suffix . "/" . $_POST["subjectSelection"];
+    $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAll" . $suffix . "/" . $_POST["subjectSelection"];
 
     $context = stream_context_create(array(
         "http" => array(
-            "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+            "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
             "protocol_version" => 1.1,
             'method' => 'GET'
     )));
@@ -95,11 +95,11 @@
         $attendedTotalExercieses = 0;
         $totalStudentsAllExercieses = 0;
 
-        $url = "http://127.0.0.1:62812/api/getAllExercises/" . $_POST["subjectSelection"];
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllExercises/" . $_POST["subjectSelection"];
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
