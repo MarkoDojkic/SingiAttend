@@ -24,11 +24,11 @@
         $enrolled_students = array();
 
         foreach($_POST['studies'] as $study_id){ //format studyID_takingYear (non taking selection is null)
-            $url = "http://127.0.0.1:62812/api/getAllStudents/" . explode("_",$study_id)[0] . "/" . explode("_",$study_id)[1];
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllStudents/" . explode("_",$study_id)[0] . "/" . explode("_",$study_id)[1];
                         
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'GET'
             )));
@@ -42,7 +42,7 @@
 
         $checkingTitle_temp = explode("/",$subject_name)[0];
 
-        $url = "http://127.0.0.1:62812/api/addNewSubject";
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/addNewSubject";
 
         $subjectData = json_encode(array(
             "title" => explode("/",$subject_name)[0],
@@ -55,7 +55,7 @@
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'POST',
                 'content' => $subjectData

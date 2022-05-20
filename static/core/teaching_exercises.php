@@ -16,11 +16,11 @@
     }
 
     function showDetails($id,$xml){
-        $url = "http://127.0.0.1:62812/api/getSubject/" . $id;
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getSubject/" . $id;
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -65,11 +65,11 @@
         $alert = "{$xml->assistantPage->viewStudentsText[0]}";
         $localization = $_SESSION["language"] === "english" ? "title_english" : "title";
         
-        $url = "http://127.0.0.1:62812/api/allStudentBySubjectId/" . $id;
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/allStudentBySubjectId/" . $id;
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));    
@@ -94,11 +94,11 @@
 
     function viewExercises($id,$xml){
 
-        $url = "http://127.0.0.1:62812/api/subjectIsInactiveById/" . $id;
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/subjectIsInactiveById/" . $id;
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -116,11 +116,11 @@
 
         $exercises = "<option value=''>-</option>";
 
-        $url = "http://127.0.0.1:62812/api/getAllExercises/" . $id;
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllExercises/" . $id;
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -195,11 +195,11 @@
 
     function startNewExercise($id,$xml){
 
-        $url = "http://127.0.0.1:62812/api/getLastExercise/" . $id;
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getLastExercise/" . $id;
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -221,11 +221,11 @@
             exit;
         }
 
-        $url = "http://127.0.0.1:62812/api/insert/exercise/" . $id . "/" . $_POST['start_time'] . "/" . $_POST['end_time'];
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/insert/exercise/" . $id . "/" . $_POST['start_time'] . "/" . $_POST['end_time'];
             
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'PUT'
         )));
