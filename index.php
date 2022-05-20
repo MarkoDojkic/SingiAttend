@@ -144,11 +144,11 @@
         
         $tBody = "";
 
-        $url = "http://127.0.0.1:62812/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId'];
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId'];
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -192,11 +192,11 @@
         $assistants = "<option value=''>-</option>";
         $studies = "";
 
-        $url = "http://127.0.0.1:62812/api/getAllAssistants";
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllAssistants";
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -209,11 +209,11 @@
             ";
         }
 
-        $url = "http://127.0.0.1:62812/api/getAllStudies";
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllStudies";
                         
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -261,11 +261,11 @@
 
         $subjects = "<option value=''>-</option>";
 
-        $url = "http://127.0.0.1:62812/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId'];
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId'];
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -290,11 +290,11 @@
         
         $tBody = "";
 
-        $url = "http://127.0.0.1:62812/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId'];
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId'];
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -331,11 +331,11 @@
 
         $subjects = "<option value=''>-</option>";
 
-        $url = "http://127.0.0.1:62812/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId'];
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId'];
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -381,11 +381,11 @@
         
         $tBody = "";
 
-        $url = "http://127.0.0.1:62812/api/getAllStaff";
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllStaff";
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -425,11 +425,11 @@
         
         $tBody = "";
         
-        $url = "http://127.0.0.1:62812/api/getAllStudents";
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllStudents";
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -474,11 +474,11 @@
 
         $subjects = "<option value=''>-</option>";
 
-        $url = "http://127.0.0.1:62812/api/getAllSubjects";
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjects";
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));

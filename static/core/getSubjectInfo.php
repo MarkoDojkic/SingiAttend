@@ -7,11 +7,11 @@
 
     $xml = @simplexml_load_file(DIR_ROOT . DIR_LANGUAGES . "/{$_SESSION["language"]}.xml")  or die(file_get_contents(DIR_ROOT . "/error404.html"));
 
-    $url = "http://127.0.0.1:62812/api/getSubject/" . $_POST['subject_id'];
+    $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getSubject/" . $_POST['subject_id'];
                 
     $context = stream_context_create(array(
         "http" => array(
-            "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+            "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
             "protocol_version" => 1.1,
             'method' => 'GET'
     )));
