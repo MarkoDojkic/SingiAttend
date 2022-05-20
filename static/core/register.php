@@ -31,13 +31,13 @@
                     || ($data_csv[$i][3] !== "professor" && $data_csv[$i][3] !== "assistant")
             ) file_put_contents($invalid_csv_path, $data_csv[$i][2] . " - " . $xml->errors->csvInvalidUser[0] . "<br>\n", FILE_APPEND | LOCK_EX);
             else {
-                $url = "http://127.0.0.1:62812/api/insert/staff";
+                $url = "http://" . SERVER_URL . SERVER_PORT . "/api/insert/staff";
                 
                 $user_data = array("id" => random_int(20000, 40000), "name_surname" => $data_csv[$i][0], "email" => $conn,$data_csv[$i][2], "password_hash" => $data_csv[$i][1], "role" => $data_csv[$i][3]);
 
                 $context = stream_context_create(array(
                     "http" => array(
-                        "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                        "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                         "protocol_version" => 1.1,
                         'method' => 'POST',
                         'content' => json_encode($user_data)
@@ -82,7 +82,7 @@
 
     if (!preg_match_all($nameSurname_pattern, $nameSurname)) $errors[] = "wrong_nS";
 
-    if (!preg_match_all("/singidunum.ac.rs$/", $email)) $errors[] = "wrong_email";
+    if (!preg_match_all("/@singidunum.ac.rs$/", $email)) $errors[] = "wrong_email";
     
     if (!preg_match_all($password_pattern, $password)) $errors[] = "wrong_pass";
     
@@ -99,13 +99,13 @@
         }
     }
     else {
-        $url = "http://127.0.0.1:62812/api/insert/staff";
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/insert/staff";
                 
         $user_data = array("id" => random_int(20000, 40000), "name_surname" => $nameSurname, "email" => $email, "password_hash" => $password, "role" => $_POST['registerAs']);
 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'POST',
                 'content' => json_encode($user_data)

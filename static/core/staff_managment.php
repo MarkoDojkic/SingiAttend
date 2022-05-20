@@ -17,11 +17,11 @@
     function switchRole($id,$xml){
         $newRole = $_POST["oldRole_$id"] === "professor" ? "assistant" : "professor";
 
-        $url = "http://127.0.0.1:62812/api/checkIfStaffHasSubjectAssigned/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1");
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/checkIfStaffHasSubjectAssigned/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1");
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -33,11 +33,11 @@
             showErrorAlert($xml->errors->switchRoleError1[0] . " " . strtolower($staffMember) . " " . $xml->errors->switchRoleError2[0]);
         }
         else {
-            $url = "http://127.0.0.1:62812/api/update/staff/" . $id;
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id;
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'PATCH',
                     'content' => json_encode(array("role"=>$newRole))
@@ -56,11 +56,11 @@
         $password_pattern = "/^(?=.*[a-z])(?=.*\d)[a-z\d]{8,}$/";
 
         if($_POST["newNS_$id"] !== null && preg_match_all($nameSurname_pattern, $_POST["newNS_$id"])){
-            $url = "http://127.0.0.1:62812/api/update/staff/" . $id;
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id;
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'PATCH',
                     'content' => json_encode(array("name_surname"=>$_POST["newNS_$id"]))
@@ -71,14 +71,14 @@
         }
 
         if($_POST["newUE_$id"] !== null){
-            $url = "http://127.0.0.1:62812/api/update/staff/" . $id;
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id;
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'PATCH',
-                    'content' => json_encode(array("email"=>$_POST["newUE_$id"]))
+                    'content' => json_encode(array("email"=>$_POST["newUE_$id"] . "@singidunum.ac.rs"))
             )));
 
             $response = file_get_contents($url, false, $context);
@@ -86,11 +86,11 @@
         }
 
         if($_POST["newPASS_$id"] !== null && preg_match_all($password_pattern, $_POST["newPASS_$id"])){
-            $url = "http://127.0.0.1:62812/api/update/staff/" . $id;
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id;
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'PATCH',
                     'content' => json_encode(array("password_hash"=>$_POST["newPASS_$id"]))
@@ -105,11 +105,11 @@
 
     function deleteStaffMember($id,$xml){
 
-        $url = "http://127.0.0.1:62812/api/deleteStaff/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1");
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/delete/staff/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1");
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'DELETE'
         )));
