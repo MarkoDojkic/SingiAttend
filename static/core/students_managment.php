@@ -21,11 +21,11 @@
         $password_pattern = "/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/";
 
         if($_POST["newNS_$id"] !== null && preg_match_all($nameSurname_pattern, $_POST["newNS_$id"])){
-            $url = "http://127.0.0.1:62812/api/update/student/" . $id;
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/student/" . $id;
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'PATCH',
                     'content' => json_encode(array("name_surname"=>$_POST["newNS_$id"]))
@@ -36,11 +36,11 @@
         }
 
         if($_POST["newIX_$id"] !== null && preg_match_all("[12]{1}[0-9]{3}\\/[0-9]{6}",$_POST["newIX_$id"])){
-            $url = "http://127.0.0.1:62812/api/update/student/" . $id;
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/student/" . $id;
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'PATCH',
                     'content' => json_encode(array("index"=>$_POST["newIX_$id"]))
@@ -51,14 +51,14 @@
         }
 
         if($_POST["newUE_$id"] !== null){
-            $url = "http://127.0.0.1:62812/api/update/student/" . $id;
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/student/" . $id;
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'PATCH',
-                    'content' => json_encode(array("email"=>$_POST["newUE_$id"]))
+                    'content' => json_encode(array("email"=>$_POST["newUE_$id"] . "@singimail.rs"))
             )));
             
             $response = file_get_contents($url, false, $context);
@@ -66,11 +66,11 @@
         }
 
         if($_POST["newPASS_$id"] !== null && preg_match_all($password_pattern, $_POST["newPASS_$id"])){
-            $url = "http://127.0.0.1:62812/api/update/student/" . $id;
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/student/" . $id;
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'PATCH',
                     'content' => json_encode(array("password_hash"=>$_POST["newPASS_$id"]))
@@ -96,10 +96,19 @@
 
     function deleteStudent($id,$xml,$conn){
 
-        $query = sprintf("DELETE FROM student WHERE student_id = '%s';",mysqli_real_escape_string($conn,$id));
-        $conn->query($query) or showErrorAlert($xml->errors->deleteError[0]);
-//Update with delete student
-        reloadPage();
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/delete/student/" . $id;
+                
+        $context = stream_context_create(array(
+            "http" => array(
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
+                "protocol_version" => 1.1,
+                'method' => 'DELETE',
+                'content' => json_encode(array("password_hash"=>$_POST["newPASS_$id"]))
+        )));
+
+        $response = file_get_contents($url, false, $context);
+        if(json_decode($response)->{"error"} != null) showErrorAlert($xml->errors->deleteError[0]);
+        else reloadPage();
     }
 
     function reloadPage(){

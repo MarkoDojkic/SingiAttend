@@ -30,11 +30,11 @@
 //Use getStaffMemberById
         if($password === null) $errors[] = "userNotFound";
         else {
-            $url = "http://127.0.0.1:62812/api/checkPassword/staff/" . $id;
+            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/checkPassword/staff/" . $id;
                 
             $context = stream_context_create(array(
                 "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                     "protocol_version" => 1.1,
                     'method' => 'GET',
                     'content' => $password

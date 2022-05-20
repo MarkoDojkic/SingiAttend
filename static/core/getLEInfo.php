@@ -10,22 +10,22 @@
     $primaryKey = $table . '_id';
 
     if($table === 'lecture'){
-        $url = "http://127.0.0.1:62812/api/getLecture/" . $_POST["$primaryKey"];
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getLecture/" . $_POST["$primaryKey"];
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
 
         $data = json_decode(file_get_contents($url, false, $context), true);
     } else {
-        $url = "http://127.0.0.1:62812/api/getExercise/" . $_POST["$primaryKey"];
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getExercise/" . $_POST["$primaryKey"];
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
@@ -39,11 +39,11 @@
 
     if(date_diff((new DateTime("",new DateTimeZone("UTC")))->add(new DateInterval('PT1H')), new DateTime($data["ended_at"],new DateTimeZone("UTC")))->invert === 1) {//time in past => lecture/exercise finished (DATA IN MONGO DB IS +0000, SO 1H IS ADDED TO CURRENT TO PARSE CORRECTLY)
 
-        $url = "http://127.0.0.1:62812/api/totalStudents/" . $data['subject_id'];
+        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/totalStudents/" . $data['subject_id'];
             
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode("singiattend-admin:singiattend-server2021") . "\r\nContent-Type: application/json",
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
                 "protocol_version" => 1.1,
                 'method' => 'GET'
         )));
