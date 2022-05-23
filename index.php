@@ -441,15 +441,15 @@
             $studentEnrollment = $student["study"] . "<br>" . explode("-",$studentEnrollment_temp)[1];
 
             $studentEnrollment = $_SESSION["language"] === "english" ? 
-                    $student["study"][0]["faculty_title_english"] . " - " . $student["study"][0]["title_english"]: 
-                    $student["study"][0]["faculty_title"] . " - " . $student["study"][0]["title"];
+                    $student["study"][0]["faculty_title_english"] . " <br/> " . $student["study"][0]["title_english"] . " (" . $student["year"][0] . ")":
+                    $student["study"][0]["faculty_title"] . " <br/> " . $student["study"][0]["title"] . " (" . $student["year"][0] . ")";
 
             $tBody .= "
                 <tr>
                     <td><input type='text' id='newNS_{$student['id']}' name='newNS_{$student['id']}' placeholder='{$student['name_surname']}'></td>
                     <td><input type='text' id='newIX_{$student['id']}' name='newIX_{$student['id']}' placeholder='{$student['index']}'></td>
                     <td><input type='password' id='newPASS_{$student['id']}' name='newPASS_{$student['id']}' placeholder='********'></input></td>
-                    <td><input type='text' id='newUE_{$student['id']}' name='newUE_{$student['id']}' placeholder='{$email}'></input>@singimail.rs</td>
+                    <td><input type='text' id='newUE_{$student['id']}' name='newUE_{$student['id']}' value='{$email}'></input>@singimail.rs</td>
                     <td>$studentEnrollment</td>
                     <td>
                         <input type='submit' id='edit_{$student['id']}' name='edit_{$student['id']}' class='btn btn-warning' value='{$xml->adminPage->editBtn[0]}'></input>&nbsp;
