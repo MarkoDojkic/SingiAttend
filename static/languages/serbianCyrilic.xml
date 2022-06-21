@@ -71,6 +71,7 @@
      <study>Изаберите студије које ће похађати овај курс (изаберите по години студија)</study>
      <add_new_subject>Додај предмет</add_new_subject>
      <addSubjectSuccessfull>Нови предмет је успешно додат.</addSubjectSuccessfull>
+     <addSubjectFailed>Дошло је до грешке при додавању нове теме. Молимо контактирајте администратора сервера за додатне информације или покушајте поново.</addSubjectFailed>
      <detailsBtn>Детаљи</detailsBtn>
      <cancelBtn>Откажи</cancelBtn>
      <lecturesBtn>Предавања</lecturesBtn>

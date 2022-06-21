@@ -72,6 +72,7 @@
       <study>Choose studies that will take this course (choose by year of study)</study>
       <add_new_subject>Add subject</add_new_subject>
       <addSubjectSuccessfull>New subject added successfully.</addSubjectSuccessfull>
+      <addSubjectFailed>Error occurred while adding new subject. Please contact server administrator for further info or try again.</addSubjectFailed>
       <detailsBtn>Details</detailsBtn>
       <cancelBtn>Cancel</cancelBtn>
       <lecturesBtn>Lectures</lecturesBtn>

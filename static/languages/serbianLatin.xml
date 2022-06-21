@@ -72,6 +72,7 @@
      <study>Izaberite studije koje će pohađati ovaj kurs (izaberite po godini studija)</study>
      <add_new_subject>Dodaj predmet</add_new_subject>
      <addSubjectSuccessfull>Novi predmet je uspešno dodat.</addSubjectSuccessfull>
+     <addSubjectFailed>Došlo je do greške pri dodavanju nove teme. Molimo kontaktirajte administratora servera za dodatne informacije ili pokušajte ponovo.</addSubjectFailed>
      <detailsBtn>Detalji</detailsBtn>
      <cancelBtn>Otkaži</cancelBtn>
      <lecturesBtn>Predavanja</lecturesBtn>
