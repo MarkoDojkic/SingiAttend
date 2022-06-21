@@ -50,7 +50,7 @@
             "professorId" => $_SESSION['loggedInId'],
             "assistantId" => $assistant,
             "enroled_students" => $enrolled_students,
-            "isInactive" => "1"
+            "isInactive" => false,
         ));
                 
         $context = stream_context_create(array(
@@ -61,12 +61,16 @@
                 'content' => $subjectData
         )));
 
-        $response = file_get_contents($url, false, $context, true);
+        $response = @file_get_contents($url, false, $context, true);
+        
+        if(!$response)
+            echo "<i style='color:red;font-size:14px;'> - {$xml->professorPage->addSubjectFailed[0]}</i><br><br>";
+        else {
+            echo "<i style='color:green;font-size:14px;'> + {$xml->professorPage->addSubjectSuccessfull[0]}</i><br><br>";
 
-        echo "<i style='color:green;font-size:14px;'> + {$xml->professorPage->addSubjectSuccessfull[0]}</i><br><br>";
-
-        echo "<script>setTimeout(function(){
-            window.top.location.reload();
-         }, 5000);</script>";
+            echo "<script>setTimeout(function(){
+                window.top.location.reload();
+            }, 5000);</script>";
+        }
     }
 ?>
