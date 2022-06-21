@@ -161,7 +161,7 @@
             $startYearButton = "<input type='submit' id='startSY_{$subject['id']}' name='startSY_{$subject['id']}'class='btn btn-success' value='{$xml->professorPage->startSYBtn[0]}'></input>";
             $endYearButton = "<input type='submit' id='endSY_{$subject['id']}' name='endSY_{$subject['id']}'class='btn btn-danger' value='{$xml->professorPage->endSYBtn[0]}'></input>";
 
-            $sYInput = $subject["isInactive"] === "1" ? $startYearButton : $endYearButton;
+            $sYInput = $subject["isInactive"] ? $startYearButton : $endYearButton;
 
             $assistantName = $subject['assistant']!=null ? $subject["assistant"][0]['name_surname'] : "";
 
