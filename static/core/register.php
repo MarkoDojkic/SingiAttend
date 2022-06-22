@@ -27,13 +27,13 @@
 
         for($i = 0; $i < sizeof($data_csv); $i++){
             if(!preg_match_all($password_pattern, $data_csv[$i][1])
-                  || !preg_match_all("/singidunum.ac.rs$/", $data_csv[$i][2])
+                  || !preg_match_all("/@singidunum.ac.rs$/", $data_csv[$i][2])
                     || ($data_csv[$i][3] !== "professor" && $data_csv[$i][3] !== "assistant")
             ) file_put_contents($invalid_csv_path, $data_csv[$i][2] . " - " . $xml->errors->csvInvalidUser[0] . "<br>\n", FILE_APPEND | LOCK_EX);
             else {
                 $url = "http://" . SERVER_URL . SERVER_PORT . "/api/insert/staff";
                 
-                $user_data = array("id" => random_int(20000, 40000), "name_surname" => $data_csv[$i][0], "email" => $conn,$data_csv[$i][2], "password_hash" => $data_csv[$i][1], "role" => $data_csv[$i][3]);
+                $user_data = array("name_surname" => $data_csv[$i][0], "email" => $conn,$data_csv[$i][2], "password_hash" => $data_csv[$i][1], "role" => $data_csv[$i][3]);
 
                 $context = stream_context_create(array(
                     "http" => array(
@@ -45,12 +45,12 @@
 
                 $response = json_decode(file_get_contents($url, false, $context));
 
-                if(json_decode($response)->{"error"} != null){
+                if($response->{"error"} != null){
                     file_put_contents($invalid_csv_path, $data_csv[$i][2] . " - " . $xml->errors->registrationError[0] . "<br>\n", FILE_APPEND | LOCK_EX);
                     continue;
                 }
 
-                $newUserHeader = $response["id"] . ':' . strtoupper($data_csv[$i][3]);
+                $newUserHeader = $response->id . ':' . strtoupper($data_csv[$i][3]);
 
                 $newUser = "
                     ------{$newUserHeader}------
@@ -101,7 +101,7 @@
     else {
         $url = "http://" . SERVER_URL . SERVER_PORT . "/api/insert/staff";
                 
-        $user_data = array("id" => random_int(20000, 40000), "name_surname" => $nameSurname, "email" => $email, "password_hash" => $password, "role" => $_POST['registerAs']);
+        $user_data = array("name_surname" => $nameSurname, "email" => $email, "password_hash" => $password, "role" => $_POST['registerAs']);
 
         $context = stream_context_create(array(
             "http" => array(
@@ -113,9 +113,21 @@
 
         $response = json_decode(file_get_contents($url, false, $context));
 
-        if(json_decode($response)->{"error"} != null) die($xml->errors->registrationError[0] . "<br>");
-        else echo "<i style='color:green;font-size:14px;'> + {$xml->registrationPage->successfullRegistration[0]} $id. {$xml->registrationPage->pageReload[0]}</i><br><br>";
+        if($response->{"error"} != null) die($xml->errors->registrationError[0] . "<br>");
+        else echo "<i style='color:green;font-size:14px;'> + {$xml->registrationPage->successfullRegistration[0]} $response->id . {$xml->registrationPage->pageReload[0]}</i><br><br>";
         
+        $newUserHeader = $response->id . ':' . strtoupper($nameSurname);
+
+                $newUser = "
+                    ------{$newUserHeader}------
+                        {$email}
+                        {$password}
+                        {$_POST['registerAs']}
+                    ------{$newUserHeader}------
+                ";
+
+                file_put_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/accounts.rtf", $newUser, FILE_APPEND | LOCK_EX);
+
         echo "<script>setTimeout(function(){
             window.top.location.reload();
          }, 5000);</script>";
