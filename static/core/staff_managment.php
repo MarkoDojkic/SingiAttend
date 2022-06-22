@@ -18,7 +18,7 @@
         $newRole = $_POST["oldRole_$id"] === "professor" ? "assistant" : "professor";
 
         $url = "http://" . SERVER_URL . SERVER_PORT . "/api/checkIfStaffHasSubjectAssigned/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1");
-                
+     
         $context = stream_context_create(array(
             "http" => array(
                 "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
@@ -26,7 +26,7 @@
                 'method' => 'GET'
         )));
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = file_get_contents($url, false, $context);
 
         if(!$data){
             $staffMember = $newRole === "professor" ? $xml->registrationPage->assistant[0] : $xml->registrationPage->professor[0];

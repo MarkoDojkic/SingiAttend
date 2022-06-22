@@ -130,24 +130,24 @@
 
     function editSubject($id,$xml){
 
-        $post = null;        
+        $post = array();        
         
         if($_POST['assistant_selection'] === ""){
-            $post = array("assistantId"=>"-1");
+            $post["assistantId"] = "-1";
         }
         else {
-            $post = array("assistantId"=>$_POST['assistant_selection']);
+            $post["assistantId"] = $_POST['assistant_selection'];
         }
 
         if($_POST["subject_name"] !== ""){ //&& preg_match_all("/^[\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z]{1,15}\s([\x{00A0}-\x{D7FF}\x{F900}-\x{FDCF}\x{FDF0}-\x{FFEF}A-z\-]{1,15}\s?){1,3}$/",$_POST["subject_name"]))
-            $post = array("title"=>$_POST['subject_name']);
+            $post["title"] = $_POST['subject_name'];
         }
         // else
             // echo "<i style='color:red;font-size:14px;'> - " . $xml->errors->edit_wrong_sN0[0] . "</i><br>";
         
         
         if($_POST["subject_nameEng"] !== ""){ //&& preg_match_all("/^[A-Z]{1}([a-z]\\s?)+$/",$_POST["subject_nameEng"])){
-            $post = array("title_english"=>$_POST['subject_nameEng']);
+            $post["title_english"] = $_POST['subject_nameEng'];
         }
         // else 
             // echo "<i style='color:red;font-size:14px;'> - " . $xml->errors->edit_wrong_sN1[0] . "</i>\";
