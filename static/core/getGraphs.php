@@ -18,7 +18,7 @@
             'method' => 'GET'
     )));
 
-    $totalStudents = json_decode(file_get_contents($url, false, $context));
+    $totalStudents = json_decode(@file_get_contents($url, false, $context));
 
     $attendedTotalLectures = 0;
     $totalStudentsAllLectures = 0;
@@ -35,8 +35,10 @@
             'method' => 'GET'
     )));
 
-    $lectures = json_decode(file_get_contents($url, false, $context), true);
+    $lectures = json_decode(@file_get_contents($url, false, $context), true);
 
+    if(!is_array($lectures) || sizeof($lectures) == 0) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
+    
     foreach($lectures as $lecture){
         $attended .= "\"" . sizeof($lecture["attended_students"]) . "\",";
         $notAttended .= "\"" . ($totalStudents - sizeof($lecture["attended_students"])) . "\",";
@@ -60,8 +62,6 @@
 
     $datesData .= "]";
     
-    if(empty($attended)) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
-
     if($_POST["graphValue"] === "barGraph"){
         echo "
                 <script src='https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js'></script>
@@ -106,6 +106,8 @@
 
         $exercises = json_decode(file_get_contents($url, false, $context), true);
 
+        if(!is_array($exercises) || $exercises.length == 0) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
+
         foreach($exercises as $exercise){
             $attended .= "\"" . sizeof($exercise["attended_students"]) . "\",";
             $notAttended .= "\"" . ($totalStudents - sizeof($exercise["attended_students"])) . "\",";
@@ -113,8 +115,6 @@
             $attendedTotalExercieses += sizeof($exercise["attended_students"]);
             $totalStudentsAllExercieses += $totalStudents;
         }
-        
-        if($attendedTotalExercieses === 0) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
 
         $percentageAL = round($attendedTotalLectures/$totalStudentsAllLectures*100);
         $percentageNAL = 100-$percentageAL;
