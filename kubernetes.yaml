@@ -1,0 +1,186 @@
+# --- MONGO DATABASE ---
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mongodb-pv
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:                  # For local development only; use proper storage class in production
+    path: /mnt/data/mongodb
+---
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongodb-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  singiattend-mongo
+  namespace: default
+  labels:
+    app: singiattend-mongo
+spec:
+  selector:
+    matchLabels:
+      app: singiattend-mongo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: singiattend-mongo
+    spec:
+      containers:
+        - name: singiattend-mongo
+          image: madojkic/main:singiattend-mongo-v2.5.0
+          ports:
+            - name: singiattend-db
+              containerPort: 27017
+              protocol: TCP
+          resources:
+            limits:
+              cpu: '2'
+              memory: 1Gi
+            requests:
+              cpu: '2'
+              memory: 1Gi
+          volumeMounts:
+          - name: mongodb-storage
+            mountPath: /data/db    
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      volumes:
+      - name: mongodb-storage
+        persistentVolumeClaim:
+          claimName: mongodb-pvc
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: madojkic-credential
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: singiattend-mongo-service
+spec:
+  selector:
+    app: singiattend-mongo
+  ports:
+    - name: singiattend-db
+      protocol: TCP
+      port: 62810
+      targetPort: 27017
+---
+# --- FE-BE-EUREKA ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: singiattend-cm
+data:
+  APP_NAME: singiattend-server #Simplified for Eureka
+  PORT: "62811"
+  MONGO_HOST: singiattend-mongo-service:62810
+  EUREKA_DISCOVERY_ENABLE: "true"
+  EUREKA_SHOULD_REGISTER: "true"
+  EUREKA_FETCH_REGISTRY: "true"
+  EUREKA_HOSTNAME: singiattend-service.default.svc.cluster.local
+  EUREKA_DEFAULT: "http://singiattend-service:8761/eureka"
+  TENANTS: |
+    [
+      {"tenantId":"SingidunumBG","db":"SingiAttend_BG"},
+      {"tenantId":"SingidunumNS","db":"SingiAttend_NS"},
+      {"tenantId":"SingidunumNIS","db":"SingiAttend_NIS"}
+    ]
+---    
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  singiattend
+  namespace: default
+  labels:
+    app: singiattend
+spec:
+  selector:
+    matchLabels:
+      app: singiattend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: singiattend
+    spec:
+      initContainers:
+        - name: wait-for-mongo
+          image: mongo:6.0
+          command:
+            - sh
+            - -c
+            - |
+              echo "Waiting for MongoDB..."
+              until mongosh --host singiattend-mongo-service --port 62810 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
+                echo "MongoDB not ready yet, retrying..."
+                sleep 3
+              done
+              echo "MongoDB is ready!"
+      containers:
+        - name: singiattend
+          image: madojkic/main:singiattend-fe-be-eureka-v2.5.0
+          ports:
+            - name: singiattend-fe
+              containerPort: 443
+              protocol: TCP
+            - name: singiattend-be
+              containerPort: 62811
+              protocol: TCP
+            - name: eureka-server
+              containerPort: 8761
+              protocol: TCP  
+          envFrom:
+            - configMapRef:
+                name: singiattend-cm
+          resources:
+            limits:
+              cpu: '2'
+              memory: 2Gi
+            requests:
+              cpu: '2'
+              memory: 2Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: madojkic-credential
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: singiattend-service
+spec:
+  selector:
+    app: singiattend
+  ports:
+    - name: singiattend-fe
+      protocol: TCP
+      port: 62812
+      targetPort: 443
+    - name: singiattend-be
+      protocol: TCP
+      port: 62811
+      targetPort: 62811
+    - name: eureka-server
+      protocol: TCP
+      port: 8761
+      targetPort: 8761
