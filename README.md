@@ -12,3 +12,16 @@ The structure of the project is as follows:
 
 The server can be run from a Docker container after being built using the provided Docker file.
 For mobile apps, it's needed to provide an appropriate url with port 62812 pointing to docker port 62812 (i.e., BE Spring server port).
+
+Kubernates deployment:
+
+run command: kubectl create deploy singiattend --image madojkic/main:singiattend-v2.4.6 -r=1 
+(r = number of replica pods)
+
+start services: kubectl apply -f services.yaml
+
+port forward in background:
+
+kubectl port-forward service/singiattend-services 62810:8080 & - FE  
+kubectl port-forward service/singiattend-services 62812:62812 & - BE  
+kubectl port-forward service/singiattend-services 62811:27017 & - MongoDB
