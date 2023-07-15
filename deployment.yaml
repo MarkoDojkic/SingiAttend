@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  singiattend 
+  namespace: default
+  labels:
+    app:  singiattend
+spec:
+  selector:
+    matchLabels:
+      app: singiattend 
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app:  singiattend
+    spec:
+      containers:
+      - name:  singiattend 
+        image:  madojkic/main:singiattend-v2.4.6
+        resources:
+          requests:
+            cpu: 1
+            memory: 2048Mi
+          limits:
+            cpu: 1
+            memory: 2048Mi
+        ports:
+        - containerPort: 8080
+          name:  singiattend-fe
+        - containerPort: 27017
+          name:  singiattend-db
+        - containerPort: 62812
+          name:  singiattend-be
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: madojkic-credential
