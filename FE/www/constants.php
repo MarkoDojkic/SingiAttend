@@ -7,7 +7,7 @@
     define("DIR_MISCELLANEOUS", DIR_STATIC . "/miscellaneous");
     define("DIR_TEMPLATES", DIR_STATIC . "/templates");
     define("SERVER_URL", "127.0.0.1:");
-    define("SERVER_PORT", "62812");
+    define("SERVER_PORT", "62810"); #Proxy app port
     define("SERVER_USERNAME", "singiattend-admin");
     define("SERVER_PASSWORD", "singiattend-server2021");
 ?>
