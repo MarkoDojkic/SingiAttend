@@ -1,0 +1,32 @@
+server:
+  port: ${PORT:62810}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "gateway"
+  endpoint:
+    gateway:
+      enabled: true
+#Routes are defined via ConfigMap as such
+#  SPRING_CLOUD_GATEWAY_ROUTES_0_ID: singiattend_ns
+#  SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: Header=X-Tenant-ID,SingidunumNS
+#  SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_1: Path=/**
+#spring:
+#  cloud:
+#    gateway:
+#      routes:
+#        - id: singiattend_ns
+#          uri: http://localhost:62813
+#          predicates:
+#            - Header=X-Tenant-ID, SingidunumNS
+#            - Path=/**
+#        - id: singiattend_nis
+#          uri: http://localhost:62814
+#          predicates:
+#            - Header=X-Tenant-ID, SingidunumNIS
+#            - Path=/**
+#        - id: default_route
+#          uri: http://localhost:62812
+#          predicates:
+#            - Path=/**

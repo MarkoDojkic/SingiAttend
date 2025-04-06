@@ -1,4 +1,4 @@
-package dev.markodojkic.singiattend.server;
+package dev.markodojkic.singiattend.proxy;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
