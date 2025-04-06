@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: singiattend-proxy-cm
+data:
+  PORT: '62810'
+  SPRING_CLOUD_GATEWAY_ROUTES_0_ID: singiattend_ns
+  SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_0: Header=X-Tenant-ID,SingidunumNS
+  SPRING_CLOUD_GATEWAY_ROUTES_0_PREDICATES_1: Path=/**
+  SPRING_CLOUD_GATEWAY_ROUTES_0_URI: lb://singiattend-ns-service
+  SPRING_CLOUD_GATEWAY_ROUTES_1_ID: singiattend_nis
+  SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_0: Header=X-Tenant-ID,SingidunumNIS
+  SPRING_CLOUD_GATEWAY_ROUTES_1_PREDICATES_1: Path=/**
+  SPRING_CLOUD_GATEWAY_ROUTES_1_URI: lb://singiattend-nis-service
+  SPRING_CLOUD_GATEWAY_ROUTES_2_ID: default_route
+  SPRING_CLOUD_GATEWAY_ROUTES_2_PREDICATES_0: Path=/**
+  SPRING_CLOUD_GATEWAY_ROUTES_2_URI: lb://singiattend-bg-service
