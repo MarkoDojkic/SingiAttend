@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: singiattend-nis-cm
+data:
+  PORT: '62815'
+  MONGO_HOST: singiattend-fe-mongo-proxy-service
+  MONGO_PORT: '27017'
+  MONGO_DB_NAME: 'SingiAttend_NIS'

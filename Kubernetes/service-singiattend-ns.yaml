@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: singiattend-ns-service
+spec:
+  selector:
+    app: singiattend_ns
+  ports:
+    - protocol: TCP
+      port: 62814
+      targetPort: 62814
+  type: LoadBalancer
