@@ -1,14 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: singiattend-bg
+  name:  singiattend-bg
+  namespace: default
   labels:
     app: singiattend-bg
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: singiattend-bg
+  replicas: 1
   template:
     metadata:
       labels:
@@ -16,17 +17,24 @@ spec:
     spec:
       containers:
         - name: singiattend-bg
-          image: madojkic/main:singiattend-be-v2.5.0
+          image: madojkic/main:singiattend-server-v2.5.0
           ports:
-            - containerPort: 62813
+            - name: singiattend-bg
+              containerPort: 62813
               protocol: TCP
           envFrom:
             - configMapRef:
-                name: singiattend-ns-cm
-          imagePullSecrets:
-            - name: madojkic-credential
-          resources: {}
+                name: singiattend-bg-cm
+          resources:
+            limits:
+              cpu: '1'
+              memory: 128Mi
+            requests:
+              cpu: '1'
+              memory: 128Mi
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
+      imagePullSecrets:
+        - name: madojkic-credential

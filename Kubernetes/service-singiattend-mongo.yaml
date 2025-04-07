@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: singiattend-mongo-service
+spec:
+  selector:
+    app: singiattend-mongo
+  ports:
+    - name: singiattend-db
+      protocol: TCP
+      port: 27017
+      targetPort: 27017

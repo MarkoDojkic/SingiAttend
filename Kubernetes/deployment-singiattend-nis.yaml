@@ -1,14 +1,15 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: singiattend-nis
+  name:  singiattend-nis
+  namespace: default
   labels:
     app: singiattend-nis
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: singiattend-nis
+  replicas: 1
   template:
     metadata:
       labels:
@@ -16,17 +17,24 @@ spec:
     spec:
       containers:
         - name: singiattend-nis
-          image: madojkic/main:singiattend-be-v2.5.0
+          image: madojkic/main:singiattend-server-v2.5.0
           ports:
-            - containerPort: 62815
+            - name: singiattend-nis
+              containerPort: 62813
               protocol: TCP
           envFrom:
             - configMapRef:
                 name: singiattend-nis-cm
-          imagePullSecrets:
-            - name: madojkic-credential
-          resources: {}
+          resources:
+            limits:
+              cpu: '1'
+              memory: 128Mi
+            requests:
+              cpu: '1'
+              memory: 128Mi
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
           imagePullPolicy: IfNotPresent
       restartPolicy: Always
+      imagePullSecrets:
+        - name: madojkic-credential

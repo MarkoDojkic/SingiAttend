@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: singiattend-fe-mongo-proxy-service
+  name: singiattend-fe-proxy-service
 spec:
   selector:
-    app: singiattend-fe-mongo-proxy
+    app: singiattend-fe-proxy
   ports:
     - name: singiattend-fe
       protocol: TCP
@@ -14,7 +14,3 @@ spec:
       protocol: TCP
       port: 62810
       targetPort: 62810
-    - name: singiattend-db
-      protocol: TCP
-      port: 27017
-      targetPort: 27017
