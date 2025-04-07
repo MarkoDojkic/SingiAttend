@@ -4,7 +4,7 @@ metadata:
   name: singiattend-ns-service
 spec:
   selector:
-    app: singiattend_ns
+    app: singiattend-ns
   ports:
     - protocol: TCP
       port: 62814
