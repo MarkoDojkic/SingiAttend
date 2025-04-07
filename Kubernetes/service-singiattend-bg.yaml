@@ -4,7 +4,7 @@ metadata:
   name: singiattend-bg-service
 spec:
   selector:
-    app: singiattend_bg
+    app: singiattend-bg
   ports:
     - protocol: TCP
       port: 62813

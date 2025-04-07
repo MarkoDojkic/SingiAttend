@@ -1,34 +1,26 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name:  singiattend-fe-mongo-proxy
+  name:  singiattend-fe-proxy
   namespace: default
   labels:
-    app: singiattend-fe-mongo-proxy
+    app: singiattend-fe-proxy
 spec:
   selector:
     matchLabels:
-      app: singiattend-fe-mongo-proxy
+      app: singiattend-fe-proxy
   replicas: 1
-  strategy:
-    rollingUpdate:
-      maxSurge: 25%
-      maxUnavailable: 25%
-    type: RollingUpdate
   template:
     metadata:
       labels:
-        app:singiattend-fe-mongo-proxy
+        app: singiattend-fe-proxy
     spec:
       containers:
-        - name: singiattend-fe-mongo-proxy
-          image: madojkic/main:singiattend-fe-mongo-proxy-v2.5.0
+        - name: singiattend-fe-proxy
+          image: madojkic/main:singiattend-fe-proxy-v2.5.0
           ports:
             - name: singiattend-fe
               containerPort: 8080
-              protocol: TCP
-            - name: singiattend-db
-              containerPort: 27017
               protocol: TCP
             - name: singiattend-gw
               containerPort: 62810
