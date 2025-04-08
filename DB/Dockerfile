@@ -10,15 +10,8 @@ RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.9/community' >> /etc/apk/repos
 
 #Install needed packages
 RUN apk update && apk upgrade
-RUN apk add openrc supervisor curl
-RUN apk add ca-certificates \
-  && update-ca-certificates \
-  && apk add --update coreutils && rm -rf /var/cache/apk/*   \ 
-  && apk add --update openjdk17 tzdata curl unzip bash \
-  && apk add --no-cache nss \
-  && rm -rf /var/cache/apk/*  
+RUN apk add bash supervisor mongodb mongodb-tools
 
-# RUN apk add mongodb mongodb-tools
 VOLUME /data/db
 
 RUN mkdir /var/mongodb_dumps/ && mkdir -p /etc/supervisor/conf.d/
