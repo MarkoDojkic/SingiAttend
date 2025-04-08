@@ -10,8 +10,8 @@ RUN echo 'http://dl-cdn.alpinelinux.org/alpine/v3.16/community' >> /etc/apk/repo
 
 #Install needed packages
 RUN apk update && apk upgrade
-RUN apk add openrc supervisor
-RUN apk add curl \
+RUN apk add openrc \
+  supervisor \
   nginx \
   php81 \
   php81-ctype \
@@ -33,7 +33,7 @@ RUN apk add curl \
 RUN apk add ca-certificates \
   && update-ca-certificates \
   && apk add --update coreutils && rm -rf /var/cache/apk/*   \ 
-  && apk add --update openjdk17 tzdata curl unzip bash \
+  && apk add --update openjdk17 tzdata unzip bash \
   && apk add --no-cache nss \
   && rm -rf /var/cache/apk/*  
 
