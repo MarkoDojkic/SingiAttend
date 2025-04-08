@@ -8,6 +8,13 @@ RUN echo "@edge http://nl.alpinelinux.org/alpine/edge/main" >> /etc/apk/reposito
 #Install needed packages
 RUN apk update && apk upgrade && apk add openjdk17
 
+RUN apk add ca-certificates \
+  && update-ca-certificates \
+  && apk add --update coreutils && rm -rf /var/cache/apk/*   \ 
+  && apk add --update openjdk17 tzdata unzip bash \
+  && apk add --no-cache nss \
+  && rm -rf /var/cache/apk/* 
+
 # Add BE
 ADD SingiAttend-Server-2.5.0.jar /var/SingiAttend-Server-2.5.0.jar
 
