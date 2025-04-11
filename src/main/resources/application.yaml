@@ -1,5 +1,15 @@
 server:
   port: ${PORT:62810}
+  http2:
+    enabled: true
+  ssl:
+    key-store: classpath:ssl_keystore-signed.p12
+    key-store-type: PKCS12
+    key-store-password: singiattend-proxy2021
+    key-password: singiattend-proxy2021
+    enabled: true
+    enabled-protocols: TLSv1.2,TLSv1.3
+    protocol: TLS
 management:
   endpoints:
     web:
