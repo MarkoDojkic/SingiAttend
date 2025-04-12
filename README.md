@@ -13,10 +13,10 @@ The structure of the project is as follows:
 The server can be run from a Docker container after being built using the provided Docker file.
 For mobile apps, it's needed to provide an appropriate url with port 62812 pointing to docker port 62812 (i.e., BE Spring server port).
 
-Kubernates deployment: kubectl apply -f Kubernates/*
+Kubernates deployment: kubectl apply -f Kubernetes/
 
 port forward in background:
 
-kubectl port-forward service/singiattend-fe-proxy-service 62810:62810 & - Proxy for BE  
-kubectl port-forward service/singiattend-fe-proxy-service 8080:8080 & - FE  
-kubectl port-forward service/singiattend-mongo-service 27017:27017 & - MongoDB
+kubectl port-forward service/singiattend-fe-proxy-service 62811:62811 & - Proxy for BE  
+kubectl port-forward service/singiattend-fe-proxy-service 62812:443 & - FE  
+kubectl port-forward service/singiattend-mongo-service 62810:27017 & - MongoDB

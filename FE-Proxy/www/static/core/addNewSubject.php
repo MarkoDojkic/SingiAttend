@@ -24,25 +24,29 @@
         $enrolled_students = array();
 
         foreach($_POST['studies'] as $study_id){ //format studyID_takingYear (non taking selection is null)
-            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllStudents/" . explode("_",$study_id)[0] . "/" . explode("_",$study_id)[1];
+            $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllStudents/" . explode("_",$study_id)[0] . "/" . explode("_",$study_id)[1]);
                         
-            $context = stream_context_create(array(
-                "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                    "protocol_version" => 1.1,
-                    'method' => 'GET'
-            )));
+            curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+            curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+                "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+                "Content-Type: application/json",
+                "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            ));
+            curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-            $data = json_decode(file_get_contents($url, false, $context), true);
+            $data = json_decode(curl_exec($server_request), true);
             
             foreach($data as $student){
                 array_push($enrolled_students, $student['id']);
             }
+
+            curl_close($server_request);
         }
 
         $checkingTitle_temp = explode("/",$subject_name)[0];
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/addNewSubject";
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/addNewSubject");
 
         $subjectData = json_encode(array(
             "title" => explode("/",$subject_name)[0],
@@ -53,15 +57,17 @@
             "isInactive" => false,
         ));
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'POST',
-                'content' => $subjectData
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "POST");
+        curl_setopt($server_request, CURLOPT_POSTFIELDS, $subjectData);
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $response = @file_get_contents($url, false, $context, true);
+        $response = curl_exec($server_request);
         
         if(!$response)
             echo "<i style='color:red;font-size:14px;'> - {$xml->professorPage->addSubjectFailed[0]}</i><br><br>";
@@ -72,5 +78,7 @@
                 window.top.location.reload();
             }, 5000);</script>";
         }
+
+        curl_close($server_request);
     }
 ?>

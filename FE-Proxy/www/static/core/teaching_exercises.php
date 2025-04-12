@@ -16,18 +16,21 @@
     }
 
     function showDetails($id,$xml){
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getSubject/" . $id;
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getSubject/" . $id);
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+        curl_close($server_request);
 
-        $action = DIR_ROOT_ONLY . DIR_CORE . "/teaching_exercises.php";
+        $action = "/" . DIR_CORE . "/teaching_exercises.php";
 
         $professor = $data["professor"][0]["name_surname"];
 
@@ -65,16 +68,19 @@
         $alert = "{$xml->assistantPage->viewStudentsText[0]}";
         $localization = $_SESSION["language"] === "english" ? "title_english" : "title";
         
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/allStudentBySubjectId/" . $id;
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/allStudentBySubjectId/" . $id);
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));    
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);   
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+        curl_close($server_request);
 
         foreach($data as $attendingStudent){
             $lang = $attendingStudent["study"]["taught_in"] === "engleski" ? $xml->professorPage->englishStudent[0] : $xml->professorPage->serbianStudent[0];
@@ -94,16 +100,19 @@
 
     function viewExercises($id,$xml){
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/subjectIsInactiveById/" . $id;
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/subjectIsInactiveById/" . $id);
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = file_get_contents($url, false, $context);
+        $data = json_decode(curl_exec($server_request), true);
+        curl_close($server_request);
 
         if($data === 'true') 
             die ("
@@ -116,16 +125,19 @@
 
         $exercises = "<option value=''>-</option>";
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllExercises/" . $id;
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllExercises/" . $id);
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+        curl_close($server_request);
         
         foreach($data as $exercise){
             $exercises .= "<option value='{$exercise['id']}'>ID: {$exercise['id']}</option>";
@@ -136,7 +148,7 @@
         $label1 = $dateLocal . ' ' . $xml->assistantPage->startTime[0];
         $label2 = $dateLocal . ' ' . $xml->assistantPage->endTime[0];
 
-        $action = DIR_ROOT_ONLY . DIR_CORE . "/teaching_exercises.php";
+        $action = "/" . DIR_CORE . "/teaching_exercises.php";
         $ajax_url = "getLEInfo.php";
 
         echo "
@@ -195,21 +207,24 @@
 
     function startNewExercise($id,$xml){
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getLastExercise/" . $id;
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getLastExercise/" . $id);
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $lastExerciseData = json_decode(file_get_contents($url, false, $context), true);
+        $lastExerciseData = json_decode(curl_exec($server_request), true);
+        curl_close($server_request);
 
         $exerciseLength = date_diff(new DateTime($_POST['start_time']),new DateTime($_POST['end_time']));
         
-        $lengthFromLastExercise = date_diff(date_create('2015-01-26 13:15:00'),date_create('2015-01-26 13:15:00'));
-        //defaultly set so it'll have invert parametar 0 to pass if test below
+        //$lengthFromLastExercise = date_diff(date_create('2015-01-26 13:15:00'),date_create('2015-01-26 13:15:00'));
+        //set by default so it will invert parametar 0 to pass NPE check
 
         if($lastExerciseData != null)
             $lengthFromLastExercise = date_diff(new DateTime($lastLectureData["ended_at"]),new DateTime($_POST['start_time'])); 
@@ -221,16 +236,18 @@
             exit;
         }
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/insert/exercise/" . $id . "/" . $_POST['start_time'] . "/" . $_POST['end_time'];
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/insert/exercise/" . $id . "/" . $_POST['start_time'] . "/" . $_POST['end_time']);
             
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'PUT'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, false);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "PUT");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        file_get_contents($url, false, $context);
+        curl_exec($server_request);
 
         echo("<script>alert('{$xml->assistantPage->startNewExerciseSuccessfull[0]}');</script>");
 

@@ -37,19 +37,30 @@ RUN apk add ca-certificates \
   && apk add --no-cache nss \
   && rm -rf /var/cache/apk/*  
 
-# Copy ngix and php81-fpm configurations
+# Copy ngix, php81-fpm configurations and ssl certificates
 COPY config/nginx.conf /etc/nginx/nginx.conf
 COPY config/conf.d /etc/nginx/conf.d/
 COPY config/fpm-pool.conf /etc/php81/php-fpm.d/www.conf 
 COPY config/php.ini /etc/php81/conf.d/custom.ini
+COPY config/ssl* /etc/nginx/ssl/
+
+# Copy and import the certificates into the container
+COPY ssl/rootCA.pem /usr/local/share/ca-certificates/rootCA.pem
+COPY ssl/intermediateCA.pem /usr/local/share/ca-certificates/intermediateCA.pem
+
+RUN keytool -import -noprompt -trustcacerts -alias rootCA -file /usr/local/share/ca-certificates/rootCA.pem -storepass changeit -cacerts && \
+    keytool -import -noprompt -trustcacerts -alias intermediateCA -file /usr/local/share/ca-certificates/intermediateCA.pem -storepass changeit -cacerts
 
 # Configure nginx FE and Proxy
 RUN mkdir /var/www/html
 COPY --chown=nginx www /var/www/html/
 ADD SingiAttend-Proxy-2.5.0.jar /var/www/SingiAttend-Proxy-2.5.0.jar
 
+#Add fullchain SSL for FE -> PROXY communication
+RUN cat /usr/local/share/ca-certificates/intermediateCA.pem /usr/local/share/ca-certificates/rootCA.pem > /var/www/html/static/miscellaneous/fullchain_ssl.pem
+
 #Expose FE and Proxy ports
-EXPOSE 8080 62810
+EXPOSE 443 62810
 
 # Configure supervisord
 COPY config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf

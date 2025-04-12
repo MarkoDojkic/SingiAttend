@@ -52,7 +52,7 @@
      </assistantPage>
   </navigation>
   <loginPage>
-     <headerTitle>Унесите свој идентификациони број и лозинку и одаберите начин пријаве.</headerTitle>
+     <headerTitle>Унесите свој идентификациони број, лозинку и одаберите радно место.</headerTitle>
      <id>Идентификациони број</id>
      <login>Пријави се</login>
   </loginPage>
@@ -114,6 +114,9 @@
      <email>Универзитетска е-пошта</email>
      <password>Лозинка</password>
      <passwordConfirm>Поновите лозинку</passwordConfirm>
+     <bg>Београд</bg>
+     <ns>Нови Сад</ns>
+     <nis>Ниш</nis>
      <professor>Професор</professor>
      <assistant>Асистент</assistant>
      <captcha>Унесите текст са слике</captcha>

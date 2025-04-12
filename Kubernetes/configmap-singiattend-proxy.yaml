@@ -3,10 +3,10 @@ kind: ConfigMap
 metadata:
   name: singiattend-proxy-cm
 data:
-  PORT: '62810'
+  PORT: "62811"
   TENANTS_JSON: |
     [
-      {"headerIdentification": "SingidunumBG", "uri": "http://singiattend-bg-service.default.svc.cluster.local:62813"},
-      {"headerIdentification": "SingidunumNS", "uri": "http://singiattend-ns-service.default.svc.cluster.local:62814"},
-      {"headerIdentification": "SingidunumNIS", "uri": "http://singiattend-nis-service.default.svc.cluster.local:62815"}
+      {"headerIdentification": "SingidunumBG", "uri": "https://singiattend-bg-service.default.svc.cluster.local:62813"},
+      {"headerIdentification": "SingidunumNIS", "uri": "https://singiattend-nis-service.default.svc.cluster.local:62813"},
+      {"headerIdentification": "SingidunumNS", "uri": "https://singiattend-ns-service.default.svc.cluster.local:62813"}
     ]
