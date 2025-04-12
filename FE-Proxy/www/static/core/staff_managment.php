@@ -5,7 +5,6 @@
     $xml = @simplexml_load_file(DIR_ROOT . DIR_LANGUAGES . "/{$_SESSION["language"]}.xml")  or die(file_get_contents(DIR_ROOT . "/error404.html"));
     
     foreach(array_keys($_POST) as $key){
-       
         switch(explode('_',$key)[0]){
             case "switchRole": switchRole(explode('_',$key)[1],$xml); break;
             case 'edit': editStaffMember(explode('_',$key)[1],$xml); break;
@@ -17,33 +16,41 @@
     function switchRole($id,$xml){
         $newRole = $_POST["oldRole_$id"] === "professor" ? "assistant" : "professor";
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/checkIfStaffHasSubjectAssigned/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1");
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/checkIfStaffHasSubjectAssigned/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1"));
      
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = file_get_contents($url, false, $context);
+        $data = curl_exec($server_request);
+
+        curl_close($server_request);
 
         if(!$data){
             $staffMember = $newRole === "professor" ? $xml->registrationPage->assistant[0] : $xml->registrationPage->professor[0];
             showErrorAlert($xml->errors->switchRoleError1[0] . " " . strtolower($staffMember) . " " . $xml->errors->switchRoleError2[0]);
         }
         else {
-            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id;
+            $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id);
                 
-            $context = stream_context_create(array(
-                "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                    "protocol_version" => 1.1,
-                    'method' => 'PATCH',
-                    'content' => json_encode(array("role"=>$newRole))
-            )));
+            curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "PATCH");
+            curl_setopt($server_request, CURLOPT_POSTFIELDS, json_encode(array("role"=>$newRole)));
+            curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+                "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+                "Content-Type: application/json",
+                "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            ));
+            curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-            $response = file_get_contents($url, false, $context);
+            $response = curl_exec($server_request);
+            curl_close($server_request);
+
             if(json_decode($response)->{"error"} != null) showErrorAlert($xml->errors->switchRoleError0[0]);
         }
 
@@ -56,48 +63,73 @@
         $password_pattern = "/^(?=.*[a-z])(?=.*\d)[a-z\d]{8,}$/";
 
         if($_POST["newNS_$id"] !== null && preg_match_all($nameSurname_pattern, $_POST["newNS_$id"])){
-            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id;
-                
-            $context = stream_context_create(array(
-                "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                    "protocol_version" => 1.1,
-                    'method' => 'PATCH',
-                    'content' => json_encode(array("name_surname"=>$_POST["newNS_$id"]))
-            )));
+            $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id);
+
+            curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "PATCH");
+            curl_setopt($server_request, CURLOPT_POSTFIELDS, json_encode(array("name_surname"=>$_POST["newNS_$id"])));
+            curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+                "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+                "Content-Type: application/json",
+                "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            ));
+            curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
             
-            $response = file_get_contents($url, false, $context);
+            $response = curl_exec($server_request);
+            curl_close($server_request);
+
             if(json_decode($response)->{"error"} != null) showErrorAlert($xml->errors->wrong_nS[0]);
         }
 
         if($_POST["newUE_$id"] !== null){
-            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id;
+            $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id);
                 
-            $context = stream_context_create(array(
-                "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                    "protocol_version" => 1.1,
-                    'method' => 'PATCH',
-                    'content' => json_encode(array("email"=>$_POST["newUE_$id"] . "@singidunum.ac.rs"))
-            )));
+            curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "PATCH");
+            curl_setopt($server_request, CURLOPT_POSTFIELDS, json_encode(array("email"=>$_POST["newUE_$id"] . "@singidunum.ac.rs")));
+            curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+                "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+                "Content-Type: application/json",
+                "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            ));
+            curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-            $response = file_get_contents($url, false, $context);
+            $response = curl_exec($server_request);
+            curl_close($server_request);
+
             if(json_decode($response)->{"error"} != null) showErrorAlert($xml->errors->wrong_email[0]);
         }
 
         if($_POST["newPASS_$id"] !== null && preg_match_all($password_pattern, $_POST["newPASS_$id"])){
-            $url = "http://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id;
+            $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/update/staff/" . $id);
                 
-            $context = stream_context_create(array(
-                "http" => array(
-                    "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                    "protocol_version" => 1.1,
-                    'method' => 'PATCH',
-                    'content' => json_encode(array("password_hash"=>$_POST["newPASS_$id"]))
-            )));
+            curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "PATCH");
+            curl_setopt($server_request, CURLOPT_POSTFIELDS, json_encode(array("password_hash"=>$_POST["newPASS_$id"])));
+            curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+                "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+                "Content-Type: application/json",
+                "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            ));
+            curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-            $response = file_get_contents($url, false, $context);
+            $response = curl_exec($server_request);
+            curl_close($server_request);
+
             if(json_decode($response)->{"error"} != null) showErrorAlert($xml->errors->wrong_pass[0]);
+            else {
+                $date = date('d.m.Y H:i:s', time()); //H - 24, h - 12
+                $newPass = $_POST["newPASS_$id"];
+                $editData = "
+                    ------PASSWORD_CHANGED_STAFF------
+                                ID: {$id}
+                         NEW PASSWORD: $newPass
+                            CHANGE AT: {$date}
+                    ------PASSWORD_CHANGED_STAFF------                  
+                ";
+
+                file_put_contents(DIR_ROOT . DIR_MISCELLANEOUS . "/editedPasswords.rtf", $editData, FILE_APPEND | LOCK_EX);
+            }
         }
 
         reloadPage();   
@@ -105,17 +137,22 @@
 
     function deleteStaffMember($id,$xml){
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/delete/staff/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1");
-                
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'DELETE'
-        )));
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/delete/staff/" . $id . "/" . ($_POST["oldRole_$id"] === "professor" ? "0" : "1"));
 
-        file_get_contents($url, false, $context);
-        reloadPage();
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "DELETE");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
+
+        $response = curl_exec($server_request);
+        curl_close($server_request);
+        
+        if(json_decode($response)->{"error"} != null) showErrorAlert($xml->errors->deleteError[0]);
+        else reloadPage();
     }
 
     function reloadPage(){

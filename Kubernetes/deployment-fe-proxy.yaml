@@ -20,10 +20,10 @@ spec:
           image: madojkic/main:singiattend-fe-proxy-v2.5.0
           ports:
             - name: singiattend-fe
-              containerPort: 8080
+              containerPort: 443
               protocol: TCP
             - name: singiattend-gw
-              containerPort: 62810
+              containerPort: 62811
               protocol: TCP
           envFrom:
             - configMapRef:

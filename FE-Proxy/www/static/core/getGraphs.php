@@ -9,33 +9,40 @@
     $attendancesData = "";
     $datesData = "[";
 
-    $url = "http://" . SERVER_URL . SERVER_PORT . "/api/totalStudents/" . $_POST["subjectSelection"];
+    $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/totalStudents/" . $_POST["subjectSelection"]);
                 
-    $context = stream_context_create(array(
-        "http" => array(
-            "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-            "protocol_version" => 1.1,
-            'method' => 'GET'
-    )));
+    curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+        "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+        "Content-Type: application/json",
+        "X-Tenant-ID: " . $_POST["proxyIdentifier"]
+    ));
+    curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-    $totalStudents = json_decode(@file_get_contents($url, false, $context));
+    $totalStudents = curl_exec($server_request);
+
+    curl_close($server_request);
 
     $attendedTotalLectures = 0;
     $totalStudentsAllLectures = 0;
 
     $suffix = strcmp($_SESSION["loggedInAs"], "professor") === 0 ? "Lectures" : "Exercises";
-
     
-    $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAll" . $suffix . "/" . $_POST["subjectSelection"];
+    $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAll" . $suffix . "/" . $_POST["subjectSelection"]);
 
-    $context = stream_context_create(array(
-        "http" => array(
-            "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-            "protocol_version" => 1.1,
-            'method' => 'GET'
-    )));
+    curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+    curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+        "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+        "Content-Type: application/json",
+        "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+    ));
+    curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-    $lectures = json_decode(@file_get_contents($url, false, $context), true);
+    $lectures = json_decode(curl_exec($server_request), true);
+
+    curl_close($server_request);
 
     if(!is_array($lectures) || sizeof($lectures) == 0) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
     
@@ -95,16 +102,20 @@
         $attendedTotalExercieses = 0;
         $totalStudentsAllExercieses = 0;
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllExercises/" . $_POST["subjectSelection"];
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllExercises/" . $_POST["subjectSelection"]);
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $exercises = json_decode(file_get_contents($url, false, $context), true);
+        $exercises = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
 
         if(!is_array($exercises) || $exercises.length == 0) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
 

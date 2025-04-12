@@ -126,9 +126,9 @@
         $page_context = str_replace("{HEADER_TITLE}",$xml->loginPage->headerTitle[0], $page_context);
         $page_context = str_replace("{id}",$xml->loginPage->id[0], $page_context);
         $page_context = str_replace("{password}",$xml->registrationPage->password[0], $page_context);
-        $page_context = str_replace("{admin}",$xml->loginPage->admin[0], $page_context);
-        $page_context = str_replace("{professor}",$xml->registrationPage->professor[0], $page_context);
-        $page_context = str_replace("{assistant}",$xml->registrationPage->assistant[0], $page_context);
+        $page_context = str_replace("{bg}",$xml->registrationPage->bg[0], $page_context);
+        $page_context = str_replace("{ns}",$xml->registrationPage->ns[0], $page_context);
+        $page_context = str_replace("{nis}",$xml->registrationPage->nis[0], $page_context);
         $page_context = str_replace("{captcha}",$xml->registrationPage->captcha[0], $page_context);
         $page_context = str_replace("{LOGIN}",$xml->loginPage->login[0], $page_context);
         $page_context = str_replace("{RESET}",$xml->registrationPage->reset[0], $page_context);
@@ -144,16 +144,20 @@
         
         $tBody = "";
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId'];
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId']);
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
         
         foreach($data as $subject){
             $subjectName = $_SESSION["language"] === "english" ? $subject["title_english"] : $subject["title"];
@@ -191,16 +195,20 @@
         $assistants = "<option value=''>-</option>";
         $studies = "";
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllAssistants";
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllAssistants");
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
 
         foreach($data as $assistant){
             $assistants .= "
@@ -208,18 +216,23 @@
             ";
         }
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllStudies";
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllStudies");
                         
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
+
+        $data = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
 
         $titleLanguage = $_SESSION["language"] === "english" ? "title_english" : "title";
         $numberOfStudies = 0;
-        $data = json_decode(file_get_contents($url, false, $context), true);
 
         foreach($data as $study){
             for($i = 1; $i < 5; $i++){
@@ -260,16 +273,41 @@
 
         $subjects = "<option value=''>-</option>";
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId'];
+        $url = "https://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByProfessor/" . $_SESSION['loggedInId'];
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
+
+        foreach($data as $assistant){
+            $assistants .= "
+                <option value='{$assistant["id"]}'>{$assistant["name_surname"]}</option>
+            ";
+        }
+
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllStudies");
+                        
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
+
+        $data = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
 
         foreach($data as $subject){
             $subjects .= "<option value='{$subject["id"]}'>ID: {$subject["id"]}</option>";
@@ -289,16 +327,20 @@
         
         $tBody = "";
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId'];
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId']);
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
 
         foreach($data as $subject){
             $subjectName = $_SESSION["language"] === "english" ? $subject["title_english"] : $subject["title"];
@@ -330,16 +372,20 @@
 
         $subjects = "<option value=''>-</option>";
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId'];
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjectsByAssistant/" . $_SESSION['loggedInId']);
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
 
         foreach($data as $subject){
             $subjects .= "<option value='{$subject["id"]}'>ID: {$subject["id"]}</option>";
@@ -362,6 +408,9 @@
         $page_context = str_replace("{passwordConfirm}",$xml->registrationPage->passwordConfirm[0], $page_context);
         $page_context = str_replace("{professor}",$xml->registrationPage->professor[0], $page_context);
         $page_context = str_replace("{assistant}",$xml->registrationPage->assistant[0], $page_context);
+        $page_context = str_replace("{bg}",$xml->registrationPage->bg[0], $page_context);
+        $page_context = str_replace("{ns}",$xml->registrationPage->ns[0], $page_context);
+        $page_context = str_replace("{nis}",$xml->registrationPage->nis[0], $page_context);
         $page_context = str_replace("{captcha}",$xml->registrationPage->captcha[0], $page_context);
         $page_context = str_replace("{REGISTER}",$xml->registrationPage->register[0], $page_context);
         $page_context = str_replace("{RESET}",$xml->registrationPage->reset[0], $page_context);
@@ -380,16 +429,20 @@
         
         $tBody = "";
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllStaff";
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllStaff");
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
 
         foreach($data as $staff_member){
             $email = explode("@",$staff_member["email"])[0];
@@ -424,16 +477,20 @@
         
         $tBody = "";
         
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllStudents";
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllStudents");
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
+
+        curl_close($server_request);
 
         foreach($data as $student){
             $email = explode("@",$student["email"])[0];
@@ -473,17 +530,20 @@
 
         $subjects = "<option value=''>-</option>";
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjects";
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjects");
                 
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(file_get_contents($url, false, $context), true);
+        $data = json_decode(curl_exec($server_request), true);
 
+        curl_close($server_request);
 
         foreach($data as $subject){
             $subjects .= "<option value='{$subject["id"]}'>ID: {$subject["id"]}</option>";

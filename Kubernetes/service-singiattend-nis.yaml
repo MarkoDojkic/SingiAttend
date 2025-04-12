@@ -7,6 +7,6 @@ spec:
     app: singiattend-nis
   ports:
     - protocol: TCP
-      port: 62815
-      targetPort: 62815
+      port: 62813
+      targetPort: 62813
   type: LoadBalancer
