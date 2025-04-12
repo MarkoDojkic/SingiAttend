@@ -8,5 +8,5 @@ spec:
   ports:
     - name: singiattend-db
       protocol: TCP
-      port: 27017
+      port: 62810
       targetPort: 27017

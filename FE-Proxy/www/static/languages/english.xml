@@ -52,7 +52,7 @@
       </assistantPage>
    </navigation>
    <loginPage>
-      <headerTitle>Enter your identification number and password and choose role to login.</headerTitle>
+      <headerTitle>Enter your identification number, password and choose your place of work.</headerTitle>
       <id>Identification number</id>
       <admin>Administrator</admin>
       <login>Login</login>
@@ -115,6 +115,9 @@
       <email>University email</email>
       <password>Password</password>
       <passwordConfirm>Repeat password</passwordConfirm>
+      <bg>Belgrade</bg>
+      <ns>Novi Sad</ns>
+      <nis>Niš</nis>
       <professor>Professor</professor>
       <assistant>Assistant</assistant>
       <captcha>Enter captcha text</captcha>

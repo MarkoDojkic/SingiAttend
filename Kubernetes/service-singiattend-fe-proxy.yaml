@@ -9,8 +9,8 @@ spec:
     - name: singiattend-fe
       protocol: TCP
       port: 62812
-      targetPort: 8080
+      targetPort: 443
     - name: singiattend-gw
       protocol: TCP
-      port: 62810
-      targetPort: 62810
+      port: 62811
+      targetPort: 62811

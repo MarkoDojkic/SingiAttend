@@ -10,24 +10,26 @@
     $primaryKey = $table . '_id';
 
     if($table === 'lecture'){
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getLecture/" . $_POST["$primaryKey"];
+        $url = "https://" . SERVER_URL . SERVER_PORT . "/api/getLecture/" . $_POST["$primaryKey"];
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json\r\nX-Tenant-ID:" . $_SESSION['proxyIdentifier'],
+                "protocol_version" => 2.0,
+                "method" => "GET",
+                "allow_self_signed" => true
         )));
 
         $data = json_decode(file_get_contents($url, false, $context), true);
     } else {
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/getExercise/" . $_POST["$primaryKey"];
+        $url = "https://" . SERVER_URL . SERVER_PORT . "/api/getExercise/" . $_POST["$primaryKey"];
                 
         $context = stream_context_create(array(
             "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
+                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json\r\nX-Tenant-ID:" . $_SESSION['proxyIdentifier'],
+                "protocol_version" => 2.0,
+                "method" => "GET",
+                "allow_self_signed" => true
         )));
 
         $data = json_decode(file_get_contents($url, false, $context), true);
@@ -39,16 +41,20 @@
 
     if(date_diff((new DateTime("",new DateTimeZone("UTC")))->add(new DateInterval('PT1H')), new DateTime($data["ended_at"],new DateTimeZone("UTC")))->invert === 1) {//time in past => lecture/exercise finished (DATA IN MONGO DB IS +0000, SO 1H IS ADDED TO CURRENT TO PARSE CORRECTLY)
 
-        $url = "http://" . SERVER_URL . SERVER_PORT . "/api/totalStudents/" . $data['subject_id'];
+        $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/totalStudents/" . $data['subject_id']);
             
-        $context = stream_context_create(array(
-            "http" => array(
-                "header" => "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD) . "\r\nContent-Type: application/json",
-                "protocol_version" => 1.1,
-                'method' => 'GET'
-        )));
+        curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
+            "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
+            "Content-Type: application/json",
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        ));
+        curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $totalStudents = json_decode(file_get_contents($url, false, $context));
+        $totalStudents = json_decode(curl_exec($server_request));
+
+        curl_close($server_request);
 
         $percetage = round( sizeof($data['attended_students']) /$totalStudents *100);
         
