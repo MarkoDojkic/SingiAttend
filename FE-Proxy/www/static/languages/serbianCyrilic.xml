@@ -57,6 +57,7 @@
      <login>Пријави се</login>
   </loginPage>
   <adminPage>
+     <proxyIdentifierModalLabel>Изаберите радно место</proxyIdentifierModalLabel>
      <passwordTitle>Унесите нову лозинку испод</passwordTitle>
      <roleTitle>Врста налога</roleTitle>
      <switchRoleBtn>Промените врсту налога</switchRoleBtn>
@@ -121,6 +122,7 @@
      <assistant>Асистент</assistant>
      <captcha>Унесите текст са слике</captcha>
      <register>Региструј се</register>
+     <confirm>Потврдите Ваш избор</confirm>
      <reset>Ресетуј образац</reset>
      <successfullRegistration>Регистрација успешна. Ваш ИД је:</successfullRegistration>
      <pageReload>Страница ће се поново учитати за 5 секунди.</pageReload>

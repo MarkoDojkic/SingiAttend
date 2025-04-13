@@ -58,6 +58,7 @@
      <login>Prijavi se</login>
   </loginPage>
   <adminPage>
+     <proxyIdentifierModalLabel>Izaberite radno mesto</proxyIdentifierModalLabel>
      <passwordTitle>Unesite novu lozinku ispod</passwordTitle>
      <roleTitle>Vrsta naloga</roleTitle>
      <switchRoleBtn>Promenite vrstu naloga</switchRoleBtn>
@@ -122,6 +123,7 @@
      <assistant>Asistent</assistant>
      <captcha>Unesite tekst sa slike</captcha>
      <register>Registruj se</register>
+     <confirm>Potvrdite Vaš izbor</confirm>
      <reset>Resetuj obrazac</reset>
      <successfullRegistration>Registracija uspešna. Vaš ID je:</successfullRegistration>
      <pageReload>Stranica će se ponovo učitati za 5 sekundi.</pageReload>
