@@ -58,6 +58,7 @@
       <login>Login</login>
    </loginPage>
    <adminPage>
+      <proxyIdentifierModalLabel>Choose place of work</proxyIdentifierModalLabel>
       <passwordTitle>Enter new password below</passwordTitle>
       <roleTitle>Role</roleTitle>
       <switchRoleBtn>Switch role</switchRoleBtn>
@@ -122,6 +123,7 @@
       <assistant>Assistant</assistant>
       <captcha>Enter captcha text</captcha>
       <register>Register</register>
+      <confirm>Confirm your choice</confirm>
       <reset>Reset form</reset>
       <successfullRegistration>Registration successfull. You're ID is:</successfullRegistration>
       <pageReload>Page will reload in 5 seconds.</pageReload>

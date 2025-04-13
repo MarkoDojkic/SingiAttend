@@ -11,7 +11,6 @@
     </head>
     <body style="background-color: #d3fff8;">
         <?php
-
             session_start();          
             
             require "constants.php";
@@ -23,7 +22,6 @@
             else if(isset($_GET["language"])) @$_SESSION["language"] = $_GET["language"];
 
             $xml = @simplexml_load_file(DIR_LANGUAGES . "/{$_SESSION["language"]}.xml") or die(file_get_contents("error404.html"));
-
 
             if($_SESSION["loggedInAs"] !== "admin"  && $_SESSION["loggedInAs"] !== "professor"  
                 && $_SESSION["loggedInAs"] !== "assistant") {
@@ -116,7 +114,7 @@
             $_SERVER["PHP_AUTH_PW"] = null;
             $_SESSION["isAdminLoggedOut"] = false;
         }
-        authenticateAdmin($xml,$conn);
+        authenticateAdmin($xml);
     }
 
     function initiateLoginPage($xml){
@@ -429,6 +427,8 @@
         
         $tBody = "";
 
+        $_SESSION["proxyIdentifier"] = getNewProxyIdentifier($xml);
+
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllStaff");
                 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
@@ -477,6 +477,8 @@
         
         $tBody = "";
         
+        $_SESSION["proxyIdentifier"] = getNewProxyIdentifier($xml);
+
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllStudents");
                 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
@@ -530,6 +532,8 @@
 
         $subjects = "<option value=''>-</option>";
 
+        $_SESSION["proxyIdentifier"] = getNewProxyIdentifier($xml);
+
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllSubjects");
                 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
@@ -579,5 +583,21 @@
         }
 
         echo "<script>window.location = 'index.php?language={$_SESSION["language"]}&page=login';</script>";
+    }
+
+    function getNewProxyIdentifier($xml){
+        if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['proxyIdentifier'])) return $_POST['proxyIdentifier'];
+        else {
+            $modal_context = file_get_contents(DIR_TEMPLATES . "/adminProxyHeaderModal.html");
+            $modal_context = str_replace("{proxyIdentifierModalLabel}",$xml->adminPage->proxyIdentifierModalLabel[0], $modal_context);
+            $modal_context = str_replace("{bg}",$xml->registrationPage->bg[0], $modal_context);
+            $modal_context = str_replace("{ns}",$xml->registrationPage->ns[0], $modal_context);
+            $modal_context = str_replace("{nis}",$xml->registrationPage->nis[0], $modal_context);
+            $modal_context = str_replace("{confirm}",$xml->registrationPage->confirm[0], $modal_context);
+
+            echo($modal_context);
+            echo("<script>$('#proxyIdentifierModal').modal('show');</script>");
+            exit;
+        }
     }
 ?>
