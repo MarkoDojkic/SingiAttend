@@ -232,7 +232,7 @@
         if($exerciseLength->i < 45 && $exerciseLength->h == 0 // incorrect: 12:00->12:44;12:00->11:59;12:00->18:01
             || $exerciseLength->invert === 1 || $exerciseLength->h > 6 || $exerciseLength->h == 6 && $exerciseLength->i != 0 || $lengthFromLastExercise->invert === 1) {
             echo "<script>alert('{$xml->errors->LELengthInvalid[0]}');</script>";
-            viewExercises($id,$xml,$conn);
+            viewExercises($id,$xml);
             exit;
         }
 
@@ -251,6 +251,6 @@
 
         echo("<script>alert('{$xml->assistantPage->startNewExerciseSuccessfull[0]}');</script>");
 
-        viewExercises($id,$xml,$conn);
+        viewExercises($id,$xml);
     }
 ?>

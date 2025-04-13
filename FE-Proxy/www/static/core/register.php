@@ -33,7 +33,7 @@
             else {
                 $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/insert/staff");
                 
-                $user_data = array("name_surname" => $data_csv[$i][0], "email" => $conn,$data_csv[$i][2], "password_hash" => $data_csv[$i][1], "role" => $data_csv[$i][3]);
+                $user_data = array("name_surname" => $data_csv[$i][0], "email" => $data_csv[$i][2], "password_hash" => $data_csv[$i][1], "role" => $data_csv[$i][3]);
 
                 curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "POST");
@@ -41,7 +41,7 @@
                 curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
                     "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
                     "Content-Type: application/json",
-                    "X-Tenant-ID: " . $_POST["proxyIdentifier"]
+                    "X-Tenant-ID: " . $data_csv[$i][4]
                 ));
                 curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -61,6 +61,7 @@
                         {$data_csv[$i][0]}
                         {$data_csv[$i][2]}
                         {$data_csv[$i][1]}
+                        {$xml->registrationPage->strtolower(str_replace('Singidunum', '', $data_csv[$i][4])[0]}
                     ------{$newUserHeader}------
                 ";
 
