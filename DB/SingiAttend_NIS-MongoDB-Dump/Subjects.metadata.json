@@ -1,1 +1,1 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"SingiAttend_NIS.Subjects"}],"collectionName":"Subjects","type":"collection"}
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"SingiAttend_NIS.Subjects"}],"uuid":"97da0cf129d64ed9955ae44a3101d5ef","collectionName":"Subjects","type":"collection"}
