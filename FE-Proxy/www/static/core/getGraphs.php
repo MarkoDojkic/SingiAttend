@@ -12,11 +12,12 @@
     $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/totalStudents/" . $_POST["subjectSelection"]);
                 
     curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
     curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
         "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
         "Content-Type: application/json",
-        "X-Tenant-ID: " . $_POST["proxyIdentifier"]
+        "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+        $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+        "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
     ));
     curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -32,11 +33,12 @@
     $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAll" . $suffix . "/" . $_POST["subjectSelection"]);
 
     curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
     curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
         "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
         "Content-Type: application/json",
-        "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+        "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+        $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+        "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
     ));
     curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -47,10 +49,10 @@
     if(!is_array($lectures) || sizeof($lectures) == 0) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
     
     foreach($lectures as $lecture){
-        $attended .= "\"" . sizeof($lecture["attended_students"]) . "\",";
-        $notAttended .= "\"" . ($totalStudents - sizeof($lecture["attended_students"])) . "\",";
-        $datesData .= "\"" . explode("T", $lecture['started_at'])[0] .  "\",";
-        $attendedTotalLectures += sizeof($lecture["attended_students"]);
+        $attended .= "\"" . sizeof($lecture["attendedStudents"]) . "\",";
+        $notAttended .= "\"" . ($totalStudents - sizeof($lecture["attendedStudents"])) . "\",";
+        $datesData .= "\"" . explode("T", $lecture['startedAt'])[0] .  "\",";
+        $attendedTotalLectures += sizeof($lecture["attendedStudents"]);
         $totalStudentsAllLectures += $totalStudents;
     }
 
@@ -105,11 +107,12 @@
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllExercises/" . $_POST["subjectSelection"]);
                 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
         curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
-            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+            "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -117,13 +120,13 @@
 
         curl_close($server_request);
 
-        if(!is_array($exercises) || $exercises.length == 0) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
+        if(!is_array($exercises) || count($exercises) == 0) die("<i style='color:red;font-size:28px;'>" . $xml->errors->graphNotGenerated[0] . "</i>");
 
         foreach($exercises as $exercise){
-            $attended .= "\"" . sizeof($exercise["attended_students"]) . "\",";
-            $notAttended .= "\"" . ($totalStudents - sizeof($exercise["attended_students"])) . "\",";
-            $datesData .= "\"" . explode("T", $exercise['started_at'])[0] .  "\",";
-            $attendedTotalExercieses += sizeof($exercise["attended_students"]);
+            $attended .= "\"" . sizeof($exercise["attendedStudents"]) . "\",";
+            $notAttended .= "\"" . ($totalStudents - sizeof($exercise["attendedStudents"])) . "\",";
+            $datesData .= "\"" . explode("T", $exercise['startedAt'])[0] .  "\",";
+            $attendedTotalExercieses += sizeof($exercise["attendedStudents"]);
             $totalStudentsAllExercieses += $totalStudents;
         }
 
@@ -154,7 +157,7 @@
                     options: {
                         title: {
                             display: true,
-                            text: '{$xml->professorPage->pieChartTitle[0]}'
+                            text: '{$xml->professorPage->pieChartTitle[0]} $percentageAL%'
                         }
                     }
                 });
@@ -170,12 +173,11 @@
                     options: {
                         title: {
                             display: true,
-                            text: '{$xml->assistantPage->pieChartTitle[0]}'
+                            text: '{$xml->assistantPage->pieChartTitle[0]} $percentageAE%'
                         }
                     }
                 });
                 </script>
             ";
     }
-
 ?>
