@@ -19,11 +19,12 @@
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getSubject/" . $id);
                 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
         curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
-            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+            "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -32,50 +33,55 @@
 
         $action = "/" . DIR_CORE . "/teaching_exercises.php";
 
-        $professor = $data["professor"][0]["name_surname"];
-
         echo "
         <link rel='stylesheet' href='https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css'>
         <script src='https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js'></script>
         <script src='https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js'></script>
-        <script>
-            var rows = window.top.document.querySelectorAll('tbody tr');
-            var i;
-            for (i = 0; i < rows.length; i++) {
-                if(rows[i].id != 'tr_{$id}') rows[i].style.backgroundColor = '#00000000';
-                else rows[i].style.backgroundColor = 'lightblue';
-            }
-        </script>
+        
         <form action='{$action}' method='post' style='text-align: center;margin:0px auto; background-color: #cdeaff; height: 100%;'>
             <div class='form-group'>
                 <label for='subject_name'>{$xml->professorPage->subject_name[0]}:</label><br><br>
                 <input type='text' class='form-control' name='subject_name' id='subject_name' autocomplete='subject_name' placeholder='{$data["title"]}' readonly>/
-                <input type='text' class='form-control' name='subject_nameEng' id='subject_nameEng' autocomplete='subject_nameEng' placeholder='{$data["title_english"]}' readonly>
+                <input type='text' class='form-control' name='subject_nameEng' id='subject_nameEng' autocomplete='subject_nameEng' placeholder='{$data["titleEnglish"]}' readonly>
             </div>
             <div class='form-group'>
                 <label for='professor'>{$xml->registrationPage->professor[0]}:</label>
-                <input type='text' class='form-control' name='professor_name' id='professor_name' placeholder='{$professor}' readonly>
+                <input type='text' class='form-control' name='professor_name' id='professor_name_$id' readonly>
             </div>
             <br>		
             <div class='form-group'>
                 <button type='submit' class='btn btn-info' id='viewStudents_$id' name='viewStudents_$id'>{$xml->assistantPage->viewStudentsBtn[0]}</button>
                 <button type='submit' class='btn btn-danger' id='cancel' name='cancel'>{$xml->professorPage->cancelBtn[0]}</button>
             </div>
-        </form>";
+        </form>
+        
+        <script>
+            var rows = window.top.document.querySelectorAll('tbody tr');
+            var i;
+            for (i = 0; i < rows.length; i++) {
+                if(rows[i].id != 'tr_{$id}') rows[i].style.backgroundColor = '#00000000';
+                else {
+                    rows[i].style.backgroundColor = 'lightblue';
+                    document.querySelector('#professor_name_$id').placeholder = rows[i].querySelector('td:nth-child(1)').innerHTML;
+                }
+            }
+        </script>
+        ";
     }  
 
     function viewAttendingStudents($id,$xml){
         $alert = "{$xml->assistantPage->viewStudentsText[0]}";
-        $localization = $_SESSION["language"] === "english" ? "title_english" : "title";
+        $localization = $_SESSION["language"] === "english" ? "titleEnglish" : "title";
         
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/allStudentBySubjectId/" . $id);
                 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
         curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
-            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+            "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);   
 
@@ -83,12 +89,12 @@
         curl_close($server_request);
 
         foreach($data as $attendingStudent){
-            $lang = $attendingStudent["study"]["taught_in"] === "engleski" ? $xml->professorPage->englishStudent[0] : $xml->professorPage->serbianStudent[0];
+            $lang = $attendingStudent["study"]["taughtIn"] === "engleski" ? $xml->professorPage->englishStudent[0] : $xml->professorPage->serbianStudent[0];
             $study = $_SESSION["language"] === "english" ? 
-            $attendingStudent["study"][0]["faculty_title_english"] . ", " . $attendingStudent["study"][0]["title_english"] . ", " . $lang:
-            $attendingStudent["study"][0]["faculty_title"] . ", " . $attendingStudent["study"][0]["title"] . ", " . $lang;
+            $attendingStudent["study"]["facultyTitleEnglish"] . ", " . $attendingStudent["study"]["titleEnglish"] . ", " . $lang:
+            $attendingStudent["study"]["facultyTitle"] . ", " . $attendingStudent["study"]["title"] . ", " . $lang;
 
-            $alert .= "\\n - {$attendingStudent["name_surname"]} ({$attendingStudent["index"]}) - {$attendingStudent["faculty"]} ({$study})";
+            $alert .= "\\n - {$attendingStudent["nameSurname"]} ({$attendingStudent["index"]}) - {$attendingStudent["faculty"]} ({$study})";
         }
 
         if(!strpos($alert,'-')) $alert = $xml->assistantPage->schoolYearOver[0];
@@ -103,15 +109,16 @@
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/subjectIsInactiveById/" . $id);
                 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
         curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
-            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+            "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
-        $data = json_decode(curl_exec($server_request), true);
+        $data = curl_exec($server_request);
         curl_close($server_request);
 
         if($data === 'true') 
@@ -128,11 +135,12 @@
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllExercises/" . $id);
                 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
         curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
-            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+            "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -210,11 +218,12 @@
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getLastExercise/" . $id);
                 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
         curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
-            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+            "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -227,7 +236,7 @@
         //set by default so it will invert parametar 0 to pass NPE check
 
         if($lastExerciseData != null)
-            $lengthFromLastExercise = date_diff(new DateTime($lastLectureData["ended_at"]),new DateTime($_POST['start_time'])); 
+            $lengthFromLastExercise = date_diff(new DateTime($lastLectureData["endedAt"]),new DateTime($_POST['start_time'])); 
 
         if($exerciseLength->i < 45 && $exerciseLength->h == 0 // incorrect: 12:00->12:44;12:00->11:59;12:00->18:01
             || $exerciseLength->invert === 1 || $exerciseLength->h > 6 || $exerciseLength->h == 6 && $exerciseLength->i != 0 || $lengthFromLastExercise->invert === 1) {
@@ -243,7 +252,9 @@
         curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
-            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+            "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 

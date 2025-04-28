@@ -1,1 +1,0 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"SingiAttend_BG.Subjects"}],"uuid":"8f5aa1cb04d24674a52385589bb7c5f2","collectionName":"Subjects","type":"collection"}

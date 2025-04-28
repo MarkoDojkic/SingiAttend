@@ -1,3 +1,13 @@
+<script>
+    function reloadCaptcha() {
+        var captchaImg = document.querySelector('img[src*="captcha.php"]');
+        if (captchaImg) {
+            var src = captchaImg.src.split('?')[0];
+            captchaImg.src = src + '?t=' + Date.now();
+        }
+    }
+</script>
+
 <div class="card text-center" style="width: 36rem; margin:0px auto; font-size: 1.2em;">
     <div class="card-header">
         {HEADER_TITLE}

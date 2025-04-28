@@ -2,7 +2,6 @@
 
     session_start();
     require "../../constants.php";
-    require_once "database_connection.php";
 
     $xml = @simplexml_load_file(DIR_ROOT . DIR_LANGUAGES . "/{$_SESSION["language"]}.xml")  or die(file_get_contents(DIR_ROOT . "/error404.html"));
     $errors = array();
@@ -33,7 +32,7 @@
             else {
                 $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/insert/staff");
                 
-                $user_data = array("name_surname" => $data_csv[$i][0], "email" => $data_csv[$i][2], "password_hash" => $data_csv[$i][1], "role" => $data_csv[$i][3]);
+                $user_data = array("nameSurname" => $data_csv[$i][0], "email" => $data_csv[$i][2], "passwordHash" => $data_csv[$i][1], "role" => $data_csv[$i][3]);
 
                 curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
                 curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "POST");
@@ -42,6 +41,8 @@
                     "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
                     "Content-Type: application/json",
                     "X-Tenant-ID: " . $data_csv[$i][4]
+                    $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $data_csv[$i][4] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $data_csv[$i][4],
+                    "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $data_csv[$i][4] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $data_csv[$i][4]
                 ));
                 curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -61,7 +62,7 @@
                         {$data_csv[$i][0]}
                         {$data_csv[$i][2]}
                         {$data_csv[$i][1]}
-                        {$xml->registrationPage->strtolower(str_replace('Singidunum', '', $data_csv[$i][4])[0]}
+                        {$xml->registrationPage->strtolower(str_replace('Singidunum', '', $data_csv[$i][4]))[0]}
                     ------{$newUserHeader}------
                 ";
 
@@ -106,7 +107,7 @@
     else {
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/insert/staff");
                 
-        $user_data = array("name_surname" => $nameSurname, "email" => $email, "password_hash" => $password, "role" => $_POST['registerAs']);
+        $user_data = array("nameSurname" => $nameSurname, "email" => $email, "passwordHash" => $password, "role" => $_POST['registerAs']);
 
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "POST");
@@ -114,7 +115,9 @@
         curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
-            "X-Tenant-ID: " . $_POST["proxyIdentifier"]
+            "X-Tenant-ID: " . $_POST["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_POST["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN-' . $_POST["proxyIdentifier"],
+            "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_POST["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -141,4 +144,7 @@
             window.top.location.reload();
          }, 5000);</script>";
     }
+
+    unset($_SESSION['captcha_text']);
+    echo '<script>parent.reloadCaptcha();</script>';
 ?>

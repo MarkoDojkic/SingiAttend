@@ -1,1 +1,0 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"SingiAttend_NIS.Lectures"}],"uuid":"72ec04589eb6449086280a2b1aedc055","collectionName":"Lectures","type":"collection"}

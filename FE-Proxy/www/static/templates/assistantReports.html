@@ -9,7 +9,7 @@
                 $.ajax({
                     type: 'POST',
                     url: '{AJAX_URL}',
-                    data: {'subject_id':selections[selections.selectedIndex].value}, 
+                    data: {'subjectId':selections[selections.selectedIndex].value}, 
                     success: function(result){
                         document.querySelector('#subjectInfo').innerHTML = result;
                     }
