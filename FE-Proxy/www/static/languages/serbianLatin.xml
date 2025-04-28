@@ -73,7 +73,7 @@
      <study>Izaberite studije koje će pohađati ovaj kurs (izaberite po godini studija)</study>
      <add_new_subject>Dodaj predmet</add_new_subject>
      <addSubjectSuccessfull>Novi predmet je uspešno dodat.</addSubjectSuccessfull>
-     <addSubjectFailed>Došlo je do greške pri dodavanju nove teme. Molimo kontaktirajte administratora servera za dodatne informacije ili pokušajte ponovo.</addSubjectFailed>
+     <addSubjectFailed>Došlo je do greške pri dodavanju novog predmeta. Molimo kontaktirajte administratora servera za dodatne informacije ili pokušajte ponovo.</addSubjectFailed>
      <detailsBtn>Detalji</detailsBtn>
      <cancelBtn>Otkaži</cancelBtn>
      <lecturesBtn>Predavanja</lecturesBtn>
@@ -148,7 +148,7 @@
      <wrong_index>Format unosa za polje „Broj indeksa“ je nevažeći (ispravan primer: 2020/123456).</wrong_index>
      <deleteError>Interna greška servera pri pokušaju brisanja korisnika.</deleteError>
      <notAtAdminPanel>Da biste se prijavili kao Administrator, koristite „Administratorsku tablu“.</notAtAdminPanel>
-     <wrong_sN>Format unosa za „Naziv predmeta“ je nevažeći. Mora biti oblikovan kao (... / ...).</wrong_sN>
+     <wrong_sN>Format unosa za „Naziv predmeta“ je nevažeći. Mora biti oblikovan kao (.../...).</wrong_sN>
      <did_not_selected_any_study>Morate odabrati bar jedan smer koji će slušati ovaj predmet.</did_not_selected_any_study>
      <addSubjectError>Interna greška servera pri pokušaju dodavanja novog predmeta. Kontaktirajte administratora ili pokušajte ponovo kasnije.</addSubjectError>
      <switchRoleError0>Interna greška servera prilikom pokušaja promene vrste naloga. Kontaktirajte administratora ili pokušajte ponovo kasnije.</switchRoleError0>
@@ -168,5 +168,6 @@
      <csvInvalidUsers>Podaci CSV datoteke su delimično uvezeni. Nevažeći redovi sadrže sledeće adrese e-pošte:</csvInvalidUsers>
      <csvInvalidUser>Nevažeći korisnik</csvInvalidUser>
      <graphNotGenerated>Nisu pronađene evidencije prisustva. Grafikon nije moguće generisati.</graphNotGenerated>
+     <noEnrolledStudents>Nijedan student trenutno nije upisan na izabrane studije.</noEnrolledStudents>
   </errors>
 </ISEPS>

@@ -6,11 +6,10 @@
 
     $errors = array();
     $subject_name = trim($_POST["subject_name"]);
-    $assistant = $_POST['assistant_selection']; //ili je prazno ili je id asistenta
     $studies = array();
     $years = array();
 
-    if (!@strpos($subject_name, "/", 1) || strpos($subject_name, "/") === 1) $errors[] = "wrong_sN"; 
+    if (empty($subject_name) || substr_count($subject_name, "/") !== 1 || strpos($subject_name, "/") === 0 || strpos($subject_name, "/") === strlen($subject_name) - 1) $errors[] = "wrong_sN"; 
     
     if (@$_POST['studies'] === null) $errors[] = "did_not_selected_any_study";
 
@@ -21,24 +20,28 @@
     }
     else {
 
-        $enrolled_students = array();
+        $enrolledStudentIds = array();
 
         foreach($_POST['studies'] as $study_id){ //format studyID_takingYear (non taking selection is null)
             $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/getAllStudents/" . explode("_",$study_id)[0] . "/" . explode("_",$study_id)[1]);
                         
             curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($server_request, CURLOPT_CUSTOMREQUEST, "GET");
             curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
                 "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
                 "Content-Type: application/json",
-                "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+                "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+                $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+                "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
             ));
             curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
             $data = json_decode(curl_exec($server_request), true);
-            
-            foreach($data as $student){
-                array_push($enrolled_students, $student['id']);
+
+            if($data === null) echo "<i style='color:maroon;font-size:14px;'> - " . $xml->errors->{"noEnrolledStudents"}[0] . "</i><br><br>";
+            else {
+                foreach($data as $student){
+                    array_push($enrolledStudentIds, $student['id']);
+                }
             }
 
             curl_close($server_request);
@@ -50,10 +53,10 @@
 
         $subjectData = json_encode(array(
             "title" => explode("/",$subject_name)[0],
-            "title_english" => explode("/",$subject_name)[1],
+            "titleEnglish" => explode("/",$subject_name)[1],
             "professorId" => $_SESSION['loggedInId'],
-            "assistantId" => $assistant,
-            "enroled_students" => $enrolled_students,
+            "assistantId" => !empty($_POST['assistant_selection']) ? $_POST['assistant_selection'] : null,
+            "enrolledStudentIds" => $enrolledStudentIds,
             "isInactive" => false,
         ));
                 
@@ -63,7 +66,9 @@
         curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
-            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"]
+            "X-Tenant-ID: " . $_SESSION["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_SESSION["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $_SESSION["proxyIdentifier"]],
+            "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_SESSION["proxyIdentifier"]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $_SESSION["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 

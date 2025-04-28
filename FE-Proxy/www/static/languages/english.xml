@@ -168,5 +168,6 @@
       <csvInvalidUsers>CSV file data partially imported. Invalid rows contain following email addresses:</csvInvalidUsers>
       <csvInvalidUser>Invalid user</csvInvalidUser>
       <graphNotGenerated>No info found. Graph could not be generated.</graphNotGenerated>
+      <noEnrolledStudents>No students are currently enrolled in selected studies.</noEnrolledStudents>
    </errors>
 </ISEPS>

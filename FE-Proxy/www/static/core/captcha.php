@@ -3,7 +3,7 @@
     session_start();
     require "../../constants.php";
     
-    $permitted_chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    $permitted_chars = 'ABCDEFGHJKLMNOPQRSTUVWXYZ';
     
     function generate_string($input, $strength = 10) {
         $input_length = strlen($input);
@@ -47,9 +47,12 @@
     $fonts = ["$fontsDir/font0.ttf","$fontsDir/font1.ttf","$fontsDir/font2.ttf","$fontsDir/font3.ttf","$fontsDir/font4.ttf","$fontsDir/font5.ttf","$fontsDir/font6.ttf","$fontsDir/font7.ttf","$fontsDir/font8.ttf","$fontsDir/font9.ttf","$fontsDir/font10.ttf","$fontsDir/font11.ttf","$fontsDir/font12.ttf","$fontsDir/font13.ttf","$fontsDir/font14.ttf","$fontsDir/font15.ttf","$fontsDir/font16.ttf","$fontsDir/font17.ttf","$fontsDir/font18.ttf","$fontsDir/font19.ttf","$fontsDir/font20.ttf","$fontsDir/font21.ttf","$fontsDir/font22.ttf","$fontsDir/font23.ttf","$fontsDir/font24.ttf","$fontsDir/font25.ttf","$fontsDir/font26.ttf","$fontsDir/font27.ttf","$fontsDir/font28.ttf","$fontsDir/font29.ttf","$fontsDir/font30.ttf","$fontsDir/font31.ttf","$fontsDir/font32.ttf","$fontsDir/font33.ttf","$fontsDir/font34.ttf",];
     
     $string_length = 6;
-    $captcha_string = generate_string($permitted_chars, $string_length);
-    
-    $_SESSION['captcha_text'] = $captcha_string;
+    // If captcha text not yet set, generate it
+    if (!isset($_SESSION['captcha_text'])) {
+        $_SESSION['captcha_text'] = generate_string($permitted_chars, 6);
+    }
+
+    $captcha_string = $_SESSION['captcha_text'];
     
     for($i = 0; $i < $string_length; $i++) {
         $letter_space = 170/$string_length;
