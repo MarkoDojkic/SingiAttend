@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name:  singiattend-fe-proxy-eureka
+  namespace: default
+  labels:
+    app: singiattend-fe-proxy-eureka
+spec:
+  selector:
+    matchLabels:
+      app: singiattend-fe-proxy-eureka
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: singiattend-fe-proxy-eureka
+    spec:
+      containers:
+        - name: singiattend-fe-proxy-eureka
+          image: madojkic/main:singiattend-fe-proxy-eureka-v2.5.0
+          ports:
+            - name: singiattend-fe
+              containerPort: 443
+              protocol: TCP
+            - name: singiattend-gw
+              containerPort: 62811
+              protocol: TCP
+            - name: eureka-server
+              containerPort: 8761
+              protocol: TCP  
+          envFrom:
+            - configMapRef:
+                name: singiattend-proxy-eureka-cm
+          resources:
+            limits:
+              cpu: '1'
+              memory: 2Gi
+            requests:
+              cpu: '1'
+              memory: 2Gi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: madojkic-credential

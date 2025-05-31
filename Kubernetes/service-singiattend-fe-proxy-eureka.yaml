@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: singiattend-fe-proxy-eureka-service
+spec:
+  selector:
+    app: singiattend-fe-proxy-eureka
+  ports:
+    - name: singiattend-fe
+      protocol: TCP
+      port: 62812
+      targetPort: 443
+    - name: singiattend-gw
+      protocol: TCP
+      port: 62811
+      targetPort: 62811
+    - name: eureka-server
+      protocol: TCP
+      port: 8761
+      targetPort: 8761  

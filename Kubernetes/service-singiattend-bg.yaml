@@ -9,4 +9,3 @@ spec:
     - protocol: TCP
       port: 62813
       targetPort: 62813
-  type: LoadBalancer
