@@ -17,6 +17,7 @@ Kubernates deployment: kubectl apply -f Kubernetes/
 
 port forward in background:
 
-kubectl port-forward service/singiattend-fe-proxy-service 62811:62811 & - Proxy for BE  
-kubectl port-forward service/singiattend-fe-proxy-service 62812:443 & - FE  
+kubectl port-forward service/singiattend-fe-proxy-eureka-service 62811:62811 & - Proxy for BE  
+kubectl port-forward service/singiattend-fe-proxy-eureka-service 62812:443 & - FE  
+kubectl port-forward service/singiattend-fe-proxy-eureka-service 8761:8761 & - Eureka
 kubectl port-forward service/singiattend-mongo-service 62810:27017 & - MongoDB

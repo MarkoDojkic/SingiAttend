@@ -16,24 +16,48 @@ spec:
         app: singiattend-ns
     spec:
       initContainers:
-        - name: wait-for-mongo
+        - name: wait-for-mongo-and-eureka
           image: mongo:6.0
+          env:
+            - name: EUREKA_DISCOVERY_ENABLE
+              valueFrom:
+                configMapKeyRef:
+                  name: singiattend-ns-cm
+                  key: EUREKA_DISCOVERY_ENABLE
+            - name: EUREKA_DEFAULT
+              valueFrom:
+                configMapKeyRef:
+                  name: singiattend-ns-cm
+                  key: EUREKA_DEFAULT
           command:
             - sh
             - -c
             - |
               echo "Waiting for MongoDB..."
               until mongosh --host singiattend-mongo-service --port 62810 --eval "db.adminCommand('ping')" > /dev/null 2>&1; do
-                echo "SingiAttend Mongo DB not ready yet, retrying..."
+                echo "MongoDB not ready yet, retrying..."
                 sleep 3
               done
-              echo "SingiAttend Mongo DB is ready!"
+              echo "MongoDB is ready!"
+
+              apt-get update && apt-get install -y curl
+
+              if [ "$EUREKA_DISCOVERY_ENABLE" = "true" ]; then
+                echo "Waiting for Eureka Server..."
+                until curl -s $EUREKA_DEFAULT/apps > /dev/null; do
+                  echo "Eureka Server not ready yet, retrying..."
+                  sleep 3
+                done
+                echo "Eureka Server is ready!"
+              else
+                echo "Skipping Eureka wait per config"
+              fi
       containers:
         - name: singiattend-ns
           image: madojkic/main:singiattend-server-v2.5.0
           ports:
             - name: singiattend-ns
-              containerPort: 62813
+              containerPort: 62815
               protocol: TCP
           envFrom:
             - configMapRef:

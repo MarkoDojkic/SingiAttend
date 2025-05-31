@@ -3,7 +3,13 @@ kind: ConfigMap
 metadata:
   name: singiattend-bg-cm
 data:
+  APP_NAME: singiattend-belgrade #Simplified for Eureka
   PORT: "62813"
-  MONGO_HOST: "singiattend-mongo-service"
+  MONGO_HOST: singiattend-mongo-service
   MONGO_PORT: "62810"
-  MONGO_DB_NAME: "SingiAttend_BG"
+  MONGO_DB_NAME: SingiAttend_BG
+  EUREKA_DISCOVERY_ENABLE: "true"
+  EUREKA_SHOULD_REGISTER: "true"
+  EUREKA_FETCH_REGISTRY: "true"
+  EUREKA_HOSTNAME: singiattend-bg-service.default.svc.cluster.local
+  EUREKA_DEFAULT: "http://singiattend-fe-proxy-eureka-service:8761/eureka"

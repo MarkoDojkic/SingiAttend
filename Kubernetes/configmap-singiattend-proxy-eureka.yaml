@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: singiattend-proxy-eureka-cm
+data:
+  APP_NAME: singiAttend-proxy
+  PORT: "62811"
+  EUREKA_DISCOVERY_ENABLE: "true"
+  EUREKA_SHOULD_REGISTER: "false"
+  EUREKA_FETCH_REGISTRY: "true"
+  EUREKA_FETCH_REGISTRY_INTERVAL: "10"
+  EUREKA_DEFAULT: "http://singiattend-fe-proxy-eureka-service:8761/eureka"
+  TENANTS_JSON: |
+    [
+      {"headerIdentification": "SingidunumBG", "uri": "lb://singiattend-belgrade"},
+      {"headerIdentification": "SingidunumNIS", "uri": "lb://singiattend-nis"},
+      {"headerIdentification": "SingidunumNS", "uri": "lb://singiattend-novisad"}
+    ]

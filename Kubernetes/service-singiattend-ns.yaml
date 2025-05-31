@@ -7,6 +7,6 @@ spec:
     app: singiattend-ns
   ports:
     - protocol: TCP
-      port: 62813
-      targetPort: 62813
+      port: 62815
+      targetPort: 62815
   type: LoadBalancer
