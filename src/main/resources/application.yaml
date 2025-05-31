@@ -1,3 +1,9 @@
+spring:
+  application:
+    name: ${APP_NAME:SingiAttend-Proxy}
+  cloud:
+    discovery:
+      enabled: true
 server:
   port: ${PORT:62810}
   http2:
@@ -10,12 +16,37 @@ server:
     enabled: true
     enabled-protocols: TLSv1.2,TLSv1.3
     protocol: TLS
+eureka:
+  client:
+    enabled: ${EUREKA_DISCOVERY_ENABLE:false}
+    register-with-eureka: ${EUREKA_SHOULD_REGISTER:false}
+    fetch-registry: ${EUREKA_FETCH_REGISTRY:false}
+    registry-fetch-interval-seconds: ${EUREKA_FETCH_REGISTRY_INTERVAL:10}
+    service-url:
+      defaultZone: ${EUREKA_DEFAULT:http://localhost:8761/eureka/}
+  instance:
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${eureka.instance.hostname}:${server.port}
+    metadata-map:
+      support-team: MarkoDojkic
+      version: @project.version@
+    non-secure-port-enabled: false
+    secure-port-enabled: true
+    secure-port: ${server.port}
+    statusPageUrl: https://${eureka.instance.hostname}:${server.port}/actuator/info
+    healthCheckUrl: https://${eureka.instance.hostname}:${server.port}/health
+    homePageUrl: https://${eureka.instance.hostname}:${server.port}/
 management:
   endpoints:
     web:
       exposure:
-        include: "gateway"
+        include: "gateway,health,info"
   endpoint:
+    health:
+      enabled: true
+      show-details: always
+    info:
+      enabled: true
     gateway:
       enabled: true
 multitenancy:

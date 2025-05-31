@@ -10,6 +10,7 @@ import org.springframework.context.annotation.DependsOn;
 import reactor.core.publisher.Mono;
 
 import java.security.InvalidParameterException;
+import java.util.Objects;
 
 @Configuration
 public class MultitenantRouteConfig {
@@ -25,7 +26,7 @@ public class MultitenantRouteConfig {
     public RouteLocator route(RouteLocatorBuilder builder) {
         RouteLocatorBuilder.Builder routesBuilder = builder.routes();
         tenantProperties.getMultitenantInstances().forEach(tenantInstance -> {
-            routesBuilder.route(predicateSpec -> predicateSpec.predicate(serverWebExchange -> serverWebExchange.getRequest().getHeaders().getFirst("X-Tenant-ID").equalsIgnoreCase(tenantInstance.headerIdentification())).and().path("/api/**").uri(tenantInstance.uri()));
+            routesBuilder.route(predicateSpec -> predicateSpec.predicate(serverWebExchange -> Objects.requireNonNull(serverWebExchange.getRequest().getHeaders().getFirst("X-Tenant-ID")).equalsIgnoreCase(tenantInstance.headerIdentification())).and().path("/api/**").uri(tenantInstance.uri()));
         });
 
         routesBuilder.route("no-matching-tenant-route", predicateSpec -> predicateSpec.path("/api/**").filters(gatewayFilterSpec -> gatewayFilterSpec.filter((serverWebExchange, gatewayFilterChain) -> {
