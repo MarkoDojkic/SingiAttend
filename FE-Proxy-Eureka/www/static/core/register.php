@@ -40,9 +40,9 @@
                 curl_setopt($server_request, CURLOPT_HTTPHEADER, array(
                     "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
                     "Content-Type: application/json",
-                    "X-Tenant-ID: " . $data_csv[$i][4]
-                    $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $data_csv[$i][4] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $data_csv[$i][4],
-                    "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $data_csv[$i][4] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $data_csv[$i][4]
+                    "X-Tenant-ID: " . $data_csv[$i][4],
+                    $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $data_csv[$i][4]] . ": " . $_SESSION['CSRF_TOKEN_SECRET-' . $data_csv[$i][4]],
+                    "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $data_csv[$i][4]] . "; XSRF-TOKEN=" . $_SESSION['CSRF_TOKEN-' . $data_csv[$i][4]]
                 ));
                 curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);
 
@@ -116,7 +116,7 @@
             "Authorization: Basic " . base64_encode(SERVER_USERNAME . ":" . SERVER_PASSWORD),
             "Content-Type: application/json",
             "X-Tenant-ID: " . $_POST["proxyIdentifier"],
-            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_POST["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN-' . $_POST["proxyIdentifier"],
+            $_SESSION['CSRF_TOKEN_HEADER_NAME-' . $_POST["proxyIdentifier"]] . ": " . $_SESSION['CSRF_TOKEN-' . $_POST["proxyIdentifier"]],
             "Cookie: JSESSIONID=" . $_SESSION['JSESSIONID-' . $_POST["proxyIdentifier"]]
         ));
         curl_setopt($server_request, CURLOPT_CAINFO, SSL_CERTIFICATE_PATH);

@@ -42,12 +42,12 @@
         curl_close($server_request);
     }
 
-    $dateLocale = $_SESSION["language"] === "english" ? "Y-m-d " : "d.m.Y ";
-    $date = date($dateLocale, strtotime($data['startedAt']));
-    $attendance = $xml->{$_SESSION['loggedInAs'] . "Page"}->notOverYet[0];
+    $dateLocale = $_SESSION["language"] === "english" ? "Y-m-d g:i a" : "d.m.Y H:i";
+    $startedAt = new DateTime($data['startedAt'], new DateTimeZone($_SESSION['user_timezone'] ?? 'UTC'));
+    $endedAt = new DateTime($data['endedAt'], new DateTimeZone($_SESSION['user_timezone'] ?? 'UTC'));
+    $attendance = $xml->{($table === 'lecture' ? "professor" : "assistant") . "Page"}->notOverYet[0];
 
-    if(date_diff((new DateTime("",new DateTimeZone("UTC")))->add(new DateInterval('PT1H')), new DateTime($data["endedAt"],new DateTimeZone("UTC")))->invert === 1) {//time in past => lecture/exercise finished (DATA IN MONGO DB IS +0000, SO 1H IS ADDED TO CURRENT TO PARSE CORRECTLY)
-
+    if((new DateTime("", new DateTimeZone($_SESSION['user_timezone'] ?? 'UTC'))) >= $endedAt) {
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/totalStudents/" . $data['subjectId']);
             
         curl_setopt($server_request, CURLOPT_RETURNTRANSFER, true);
@@ -69,8 +69,8 @@
         $attendance = $percetage . "% (" . sizeof($data['attendedStudents']) . "/" . $totalStudents . ")";
     }
 
-    $startTime = explode('T', $data["startedAt"])[0] . ". " . explode("+",explode('T', $data["startedAt"])[1])[0];
-    $endTime = explode('T', $data["endedAt"])[0] . ". " . explode("+",explode('T', $data["endedAt"])[1])[0];
+    $startTime = $startedAt->format($dateLocale);
+    $endTime = $endedAt->format($dateLocale);
 
     echo "<table class='table table-bordered table-inverse table-responsive' style='font-size: 13px;'>
             <tbody>
