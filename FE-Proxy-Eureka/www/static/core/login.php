@@ -105,6 +105,7 @@
 
             $page_redirect = strcmp($loginAs, "assistant") === 0 ? "teaching_exercises" : "teaching_subject_management";
             echo "<script>window.top.location.href = '/index.php?language={$_SESSION['language']}&page={$page_redirect}';</script>";
+            exit;
         }
         
         unset($_SESSION['captcha_text']);

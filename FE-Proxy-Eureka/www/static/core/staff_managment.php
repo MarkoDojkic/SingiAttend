@@ -169,7 +169,7 @@
     function reloadPage(){
         echo "<script>setTimeout(function(){
             window.top.location.reload();
-        }, 1);</script>";
+        }, 1000);</script>";
     }
 
     function showErrorAlert($message){

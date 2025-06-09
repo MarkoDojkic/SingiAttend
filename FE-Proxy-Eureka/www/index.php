@@ -158,6 +158,7 @@
 
             $startYearButton = "<input type='submit' id='startSY_{$subject['subjectId']}' name='startSY_{$subject['subjectId']}'class='btn btn-success' value='{$xml->professorPage->startSYBtn[0]}'></input>";
             $endYearButton = "<input type='submit' id='endSY_{$subject['subjectId']}' name='endSY_{$subject['subjectId']}'class='btn btn-danger' value='{$xml->professorPage->endSYBtn[0]}'></input>";
+            $execisesButton = empty($subject['nameA']) ? "<input type='submit' id='exercises_{$subject['subjectId']}' name='exercises_{$subject['subjectId']}' class='btn btn-primary' value='{$xml->assistantPage->exercisesBtn[0]}'></input>&nbsp;" : "";
 
             $sYInput = $subject["isInactive"] ? $startYearButton : $endYearButton;
             $assistantName = empty($subject['nameA']) ? $subject["nameT"] : $subject["nameA"];
@@ -168,8 +169,9 @@
                     <td>$subjectName</td>
                     <td>
                     <input type='submit' id='lectures_{$subject['subjectId']}' name='lectures_{$subject['subjectId']}' class='btn btn-primary' value='{$xml->professorPage->lecturesBtn[0]}'></input>&nbsp;
-                        <input type='submit' id='details_{$subject['subjectId']}' name='details_{$subject['subjectId']}' class='btn btn-info' value='{$xml->professorPage->detailsBtn[0]}'></input>&nbsp;
-                        {$sYInput}
+                    {$execisesButton}
+                    <input type='submit' id='details_{$subject['subjectId']}' name='details_{$subject['subjectId']}' class='btn btn-info' value='{$xml->professorPage->detailsBtn[0]}'></input>&nbsp;
+                    {$sYInput}
                     </td>
                 </tr>
             ";

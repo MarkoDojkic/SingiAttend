@@ -8,5 +8,3 @@ for DB_NAME in "SingiAttend_BG" "SingiAttend_NS" "SingiAttend_NIS"; do
         echo "Database $DB_NAME already exists, skipping restore."
     fi
 done
-
- mongorestore --db SingiAttend_BG "/var/tmp/SingiAttend_BG/"

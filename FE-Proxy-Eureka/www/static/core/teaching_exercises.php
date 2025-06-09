@@ -128,7 +128,7 @@
             
             setTimeout(function(){
                 window.top.location.reload();
-            }, 1);</script>");
+            }, 1000);</script>");
 
         $exercises = "<option value=''>-</option>";
 
@@ -231,18 +231,16 @@
         curl_close($server_request);
 
         $exerciseLength = date_diff(new DateTime($_POST['start_time']),new DateTime($_POST['end_time']));
-        
-        //$lengthFromLastExercise = date_diff(date_create('2015-01-26 13:15:00'),date_create('2015-01-26 13:15:00'));
-        //set by default so it will invert parametar 0 to pass NPE check
+  
+        if($lastExerciseData != null){
+            $lengthFromLastExercise = date_diff(new DateTime($lastExerciseData["endedAt"]),new DateTime($_POST['start_time'])); 
 
-        if($lastExerciseData != null)
-            $lengthFromLastExercise = date_diff(new DateTime($lastLectureData["endedAt"]),new DateTime($_POST['start_time'])); 
-
-        if($exerciseLength->i < 45 && $exerciseLength->h == 0 // incorrect: 12:00->12:44;12:00->11:59;12:00->18:01
-            || $exerciseLength->invert === 1 || $exerciseLength->h > 6 || $exerciseLength->h == 6 && $exerciseLength->i != 0 || $lengthFromLastExercise->invert === 1) {
-            echo "<script>alert('{$xml->errors->LELengthInvalid[0]}');</script>";
-            viewExercises($id,$xml);
-            exit;
+            if($exerciseLength->i < 45 && $exerciseLength->h == 0 // incorrect: 12:00->12:44;12:00->11:59;12:00->18:01
+                || $exerciseLength->invert === 1 || $exerciseLength->h > 6 || $exerciseLength->h == 6 && $exerciseLength->i != 0 || $lengthFromLastExercise->invert === 1) {
+                echo "<script>alert('{$xml->errors->LELengthInvalid[0]}');</script>";
+                viewExercises($id,$xml);
+                exit;
+            }
         }
 
         $server_request = curl_init("https://" . SERVER_URL . SERVER_PORT . "/api/insert/exercise/" . $id . "/" . $_POST['start_time'] . "/" . $_POST['end_time']);

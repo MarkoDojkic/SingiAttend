@@ -6,6 +6,16 @@
             captchaImg.src = src + '?t=' + Date.now();
         }
     }
+
+    function postLoginRedirect(redirectPath){
+        header("Location: " + redirectPath, true, 307);
+    }
+
+    fetch('/set-timezone.php', {
+        method: 'POST',
+        body: JSON.stringify({ timezone: Intl.DateTimeFormat().resolvedOptions().timeZone }),
+        headers: { 'Content-Type': 'application/json' }
+    });
 </script>
 
 <div class="card text-center" style="width: 36rem; margin:0px auto; font-size: 1.2em;">
