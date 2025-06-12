@@ -7,13 +7,11 @@ import org.bson.types.ObjectId;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
 import org.springframework.data.mongodb.repository.Aggregation;
 import org.springframework.data.mongodb.repository.MongoRepository;
-import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 import org.springframework.lang.Nullable;
 
 import java.util.Date;
 import java.util.List;
 
-@EnableMongoRepositories
 public interface ISubjectRepository extends MongoRepository<Subject, String> {
     @Aggregation(pipeline={"{$match: {enrolled_study_ids: {$in:  ['?0'] } } }",
             "{ $lookup: {from:'Staff',localField:'professor_id',foreignField:'_id',as:'professor'}}",
