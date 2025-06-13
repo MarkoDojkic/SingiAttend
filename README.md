@@ -11,4 +11,27 @@ The structure of the project is as follows:
 
 
 The server can be run from a Docker container after being built using the provided Docker file.
-For mobile apps, it's needed to provide an appropriate url with port 62812 pointing to docker port 62812 (i.e., BE Spring server port).
+For mobile apps, it's needed to provide an appropriate url with port 62811 pointing to docker port 62812 (i.e., BE Spring server port).
+
+## SingiAttend K8s Setup
+
+### 🧩 Components
+- MongoDB (single instance, persistent volume)
+- Backend + Frontend (Spring Boot)
+- Eureka (Service Discovery)
+- ConfigMap for shared config
+- InitContainer for MongoDB readiness check
+
+### 🚀 Deploy
+
+```bash
+kubectl apply -f k8s-deployment.yaml
+
+# MongoDB
+kubectl port-forward service/singiattend-mongo-service 62810:62810 &
+
+# Backend API
+kubectl port-forward service/singiattend-service 62811:62811 &
+
+# Frontend (HTTPS)
+kubectl port-forward service/singiattend-service 62812:62812 &
